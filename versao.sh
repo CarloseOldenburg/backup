@@ -56,7 +56,7 @@ wget --inet4-only -c https://github.com/wilker-santos/VSDImplantUpdater/raw/main
 
 # Install packages
 log "Instalando VS Autopag S.E...."
-sudo dpkg -i vs-autopag-se_2.33.0_amd64.deb
+sudo dpkg -i vs-autopag-se_2.33.0_amd64.deb'
 log "Instalando VS OS Interface...."
 sudo dpkg -i vs-os-interface_$VsOsInterface'_amd64.deb'
 log "Instalando VS Food Launcher...."
