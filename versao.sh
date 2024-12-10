@@ -8,7 +8,7 @@ log()
 }
 
 # Versions
-VsOsInterface="2.23.5"
+VsOsInterface="2.28.0"
 VsAutoPagSE="2.33.0"
 #VsPrint="2.18.0"
 VsFoodLauncher="2.0.0"
@@ -48,7 +48,7 @@ sudo apt remove apport apport-symptoms -y
 
 # Download packages
 log "Download VS OS Interface...."
-wget --inet4-only -c https://cdn.vsd.app/softwares/vs-os-interface/$VsOsInterface/vs-os-interface_$VsOsInterface'_amd64.deb'
+wget --inet4-only -c https://cdn.vsd.app/softwares/vs-os-interface/2.28.0/vs-os-interface_2.28.0_amd64.deb
 log "Download VS Autopag S.E...." 
 wget --inet4-only -c https://cdn.vsd.app/softwares/vs-autopag-se/2.33.0/vs-autopag-se_2.33.0_amd64.deb
 log "Download VS Food Launcher...." 
@@ -58,7 +58,7 @@ wget --inet4-only -c https://github.com/wilker-santos/VSDImplantUpdater/raw/main
 log "Instalando VS Autopag S.E...."
 sudo dpkg -i vs-autopag-se_2.33.0_amd64.deb
 log "Instalando VS OS Interface...."
-sudo dpkg -i vs-os-interface_$VsOsInterface'_amd64.deb'
+sudo dpkg -i vs-os-interface_2.28.0_amd64.deb
 log "Instalando VS Food Launcher...."
 sudo dpkg -i vs-food-launcher_2.0.0_amd64.deb
 log "Download Google Chrome...."
