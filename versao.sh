@@ -1,7 +1,6 @@
 #!/bin/bash
 # sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/versao.sh | bash
 
-
 set -e  # Para o script em caso de erro
 LOG_FILE="install_log.txt"
 
