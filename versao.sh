@@ -34,7 +34,7 @@ sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a $LOG_FI
 sudo dpkg -i vsd-payment_1.2.1_amd64.deb 2>&1 | tee -a $LOG_FILE
 
 # Reboot do sistema
-#echo "*****************Instalação Concluida*************************"
+echo "*****************Instalação Concluida*************************"
 echo "Reiniciando sistema..."
 sleep 1
 echo "Reiniciando Terminal em 5..."
