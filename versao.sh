@@ -34,6 +34,21 @@ sudo dpkg -i vs-os-interface_2.24.0_amd64.deb 2>&1 | tee -a $LOG_FILE
 sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a $LOG_FILE
 sudo dpkg -i vsd-payment_1.2.1_amd64.deb 2>&1 | tee -a $LOG_FILE
 
+
 # Reboot do sistema
-echo "Reiniciando sistema..." | tee -a $LOG_FILE
+echo "*****************Instalação Concluida*************************"
+echo "Reiniciando sistema..."
+log "Reiniciando...."
+echo "Reiniciando Terminal em 5..."
+sleep 1
+echo "Reiniciando Terminal em 4..."
+sleep 1
+echo "Reiniciando Terminal em 3..."
+sleep 1
+echo "Reiniciando Terminal em 2..."
+sleep 1
+echo "Reiniciando Terminal em 1..."
+sleep 1
+echo "Reiniciando Terminal em 0..."
+sleep 1
 sudo reboot
