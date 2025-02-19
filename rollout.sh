@@ -25,13 +25,13 @@ sudo apt purge -y pinpad-server 2>&1 | tee -a $LOG_FILE
 echo "Baixando novos módulos..." | tee -a $LOG_FILE
 wget https://cdn.vsd.app/softwares/vs-os-interface/2.24.0/vs-os-interface_2.24.0_amd64.deb 2>&1 | tee -a $LOG_FILE
 wget https://github.com/getzoop/zoop-package-public/releases/download/zoop-desktop-server_3.10.0-beta/pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a $LOG_FILE
-wget https://cdn.vsd.app/softwares/vsd-payment/prod/vsd-payment_1.2.1_amd64.deb 2>&1 | tee -a $LOG_FILE
+wget https://cdn.vsd.app/softwares/vsd-payment/prod/vsd-payment_1.4.0_amd64.deb 2>&1 | tee -a $LOG_FILE
 
 # Instalar os novos módulos
 echo "Instalando novos módulos..." | tee -a $LOG_FILE
 sudo dpkg -i vs-os-interface_2.24.0_amd64.deb 2>&1 | tee -a $LOG_FILE
 sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a $LOG_FILE
-sudo dpkg -i vsd-payment_1.2.1_amd64.deb 2>&1 | tee -a $LOG_FILE
+sudo dpkg -i vsd-payment_1.4.0_amd64.deb 2>&1 | tee -a $LOG_FILE
 
 # Reboot do sistema
 echo "*****************Instalação Concluida*************************"
