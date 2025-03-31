@@ -8,13 +8,12 @@ echo "Iniciando instalação..." | tee -a $LOG_FILE
 
 # Função para limpar o token e cache do Google Chrome
 echo "Limparando token..." | tee -a $LOG_FILE
-function clear_token() {
 rm -r .cache/google-chrome/*
 rm -r .config/google-chrome/*
 sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token*
 sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery*
 echo "Token e cache do Google Chrome limpos."
-}
+
 
 # Baixar e instalar o vsd-launcher
 echo "Baixando vsd-launcher..." | tee -a $LOG_FILE
