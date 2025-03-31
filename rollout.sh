@@ -6,11 +6,15 @@ LOG_FILE="install_log.txt"
 
 echo "Iniciando instalação..." | tee -a $LOG_FILE
 
-# Baixar e instalar o vsd-launcher
-echo "Baixando vsd-launcher..." | tee -a $LOG_FILE
-wget https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O vsd-launcher 2>&1 | tee -a $LOG_FILE
-sudo chmod 755 vsd-launcher
-sudo mv vsd-launcher /usr/bin/
+# Função para limpar o token e cache do Google Chrome
+echo "Limparando token..." | tee -a $LOG_FILE
+function clear_token() {
+rm -r .cache/google-chrome/*
+rm -r .config/google-chrome/*
+sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token*
+sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery*
+echo "Token e cache do Google Chrome limpos."
+}
 
 echo "Executando vsd-launcher..." | tee -a $LOG_FILE
 vsd-launcher -s food 2>&1 | tee -a $LOG_FILE
