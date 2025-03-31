@@ -16,9 +16,14 @@ sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery*
 echo "Token e cache do Google Chrome limpos."
 }
 
+# Baixar e instalar o vsd-launcher
+echo "Baixando vsd-launcher..." | tee -a $LOG_FILE
+wget https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O vsd-launcher 2>&1 | tee -a $LOG_FILE
+sudo chmod 755 vsd-launcher
+sudo mv vsd-launcher /usr/bin/
+
 echo "Executando vsd-launcher..." | tee -a $LOG_FILE
 vsd-launcher -s food 2>&1 | tee -a $LOG_FILE
-vsd-launcher --clear-token 2>&1 | tee -a $LOG_FILE
 
 # Desinstalar módulos antigos
 echo "Removendo módulos antigos..." | tee -a $LOG_FILE
