@@ -1,8 +1,8 @@
 #!/bin/bash
-# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | bash
+# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | sudo bash
 
 set -e  # Para o script em caso de erro
-LOG_FILE="/var/log/update_install_log.txt"
+LOG_FILE="~/update_install_log.txt"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
@@ -27,7 +27,7 @@ log "Preparando ambiente..."
 sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock
 sudo ufw disable
 sudo modprobe usbcore autosuspend=-1
-xfconf-query -c xfwm4 -p /general/use_compositing -s false
+xfconf-query -c xfwm4 -p /general/use_compositing || xfconf-query -c xfwm4 -p /general/use_compositing -n -t bool -s false
 sudo apt-get update
 sudo apt-get install intel-media-va-driver -y
 
@@ -87,7 +87,7 @@ fi
 
 # Limpeza dos arquivos
 log "Limpando arquivos temporários..."
-rm -f *.deb ~/temp_display.webp
+rm -f *.deb
 
 # Finalização
 log "Limpando token vsd-launcher..."
@@ -100,20 +100,5 @@ for i in {5..0}; do
     sleep 1
 done
 
-# Reboot do sistema
-echo "*****************Instalação Concluida*************************"
-echo "Reiniciando sistema..."
-sleep 1
-echo "Reiniciando Terminal em 5..."
-sleep 1
-echo "Reiniciando Terminal em 4..."
-sleep 1
-echo "Reiniciando Terminal em 3..."
-sleep 1
-echo "Reiniciando Terminal em 2..."
-sleep 1
-echo "Reiniciando Terminal em 1..."
-sleep 1
-echo "Reiniciando Terminal em 0..."
-sleep 1
+log "Reiniciando sistema..."
 sudo reboot
