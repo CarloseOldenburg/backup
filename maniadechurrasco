@@ -22,11 +22,6 @@ VsFoodLauncher="2.0.0"
 log "Encerrando Google Chrome..."
 pkill chrome || true
 
-# Baixar imagem para exibição temporária
-log "Baixando imagem temporária..."
-wget --inet4-only -c https://images.food.vsd.app/uploads/10075/advertising/2024/07/30/f304c1ba70673b9a.webp -O ~/temp_display.webp
-google-chrome --password-store=basic --kiosk --disable-pinch --force-device-scale-factor=1.75 ~/temp_display.webp &>/dev/null &
-
 # Preparação do ambiente
 log "Preparando ambiente..."
 sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock
