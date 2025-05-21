@@ -1,0 +1,124 @@
+#!/bin/bash
+# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | bash
+
+set -e  # Para o script em caso de erro
+LOG_FILE="/var/log/update_install_log.txt"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+log "Iniciando instalação"
+
+# Inicializa arquivo de status
+echo "$1" > ~/update-status.txt
+
+# Definição de versões
+VsOsInterface="2.28.4"
+VsAutoPagSE="2.33.3"
+VsFoodLauncher="2.0.0"
+
+# Fechar Chrome se aberto
+log "Encerrando Google Chrome..."
+pkill chrome || true
+
+# Baixar imagem para exibição temporária
+log "Baixando imagem temporária..."
+wget --inet4-only -c https://images.food.vsd.app/uploads/10075/advertising/2024/07/30/f304c1ba70673b9a.webp -O ~/temp_display.webp
+google-chrome --password-store=basic --kiosk --disable-pinch --force-device-scale-factor=1.75 ~/temp_display.webp &>/dev/null &
+
+# Preparação do ambiente
+log "Preparando ambiente..."
+sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock
+sudo ufw disable
+sudo modprobe usbcore autosuspend=-1
+xfconf-query -c xfwm4 -p /general/use_compositing -s false
+sudo apt-get update
+sudo apt-get install intel-media-va-driver -y
+
+# Parando serviços
+log "Parando serviços NodeJS..."
+pkill node || true
+
+# Criando backups
+log "Criando backups dos logs..."
+sudo mkdir -p /opt/videosoft_bkp_log/{vs-autopag-se,vs-os-interface,vs-print}
+
+sudo mv /opt/videosoft/*.tar.gz /opt/videosoft_bkp_log/ 2>/dev/null || true
+sudo mv /opt/videosoft/vs-autopag-se/log/ /opt/videosoft_bkp_log/vs-autopag-se/ 2>/dev/null || true
+sudo mv /opt/videosoft/vs-os-interface/log/ /opt/videosoft_bkp_log/vs-os-interface/ 2>/dev/null || true
+sudo mv /opt/videosoft/vs-print/log/ /opt/videosoft_bkp_log/vs-print/ 2>/dev/null || true
+
+# Removendo relatórios de crash e apport
+log "Removendo arquivos de crash e apport..."
+sudo rm -rf /var/crash/*
+sudo apt-get remove apport apport-symptoms -y
+
+# Instalando vsd-launcher
+log "Instalando vsd-launcher..."
+sudo wget -q https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O /usr/bin/vsd-launcher
+sudo chmod 755 /usr/bin/vsd-launcher
+
+log "Executando vsd-launcher..."
+sudo vsd-launcher -s food
+
+# Baixando e instalando novos módulos
+log "Baixando novos módulos..."
+wget -q https://cdn.vsd.app/softwares/vs-os-interface/${VsOsInterface}/vs-os-interface_${VsOsInterface}_amd64.deb
+wget -q https://cdn.vsd.app/softwares/vs-autopag-se/${VsAutoPagSE}/vs-autopag-se_${VsAutoPagSE}_amd64.deb
+wget -q https://cdn.vsd.app/softwares/vs-food-launcher/${VsFoodLauncher}/vs-food-launcher_${VsFoodLauncher}_amd64.deb
+wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
+log "Instalando VS OS Interface..."
+sudo dpkg -i vs-os-interface_${VsOsInterface}_amd64.deb
+
+log "Instalando VS AutoPag SE..."
+sudo dpkg -i vs-autopag-se_${VsAutoPagSE}_amd64.deb
+
+log "Instalando VS Food Launcher..."
+sudo dpkg -i vs-food-launcher_${VsFoodLauncher}_amd64.deb
+
+log "Instalando Google Chrome..."
+sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get install -f -y
+
+# Ajustando script do VS Food Launcher
+SCRIPT_PATH="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
+if grep -q "chromium \"\$VS_URL_APP\" \$PARAMS" "$SCRIPT_PATH"; then
+    log "Alterando navegador de chromium para google-chrome..."
+    sudo sed -i 's/chromium "$VS_URL_APP" $PARAMS/google-chrome "$VS_URL_APP" $PARAMS/g' "$SCRIPT_PATH"
+else
+    log "Navegador já configurado como google-chrome."
+fi
+
+# Limpeza dos arquivos
+log "Limpando arquivos temporários..."
+rm -f *.deb ~/temp_display.webp
+
+# Finalização
+log "Limpando token vsd-launcher..."
+sudo vsd-launcher --clear-token
+sudo vsd-launcher -s food
+
+log "Instalação concluída com sucesso! Reiniciando terminal em 5 segundos..."
+for i in {5..0}; do
+    echo "Reiniciando terminal em $i..."
+    sleep 1
+done
+
+# Reboot do sistema
+echo "*****************Instalação Concluida*************************"
+echo "Reiniciando sistema..."
+sleep 1
+echo "Reiniciando Terminal em 5..."
+sleep 1
+echo "Reiniciando Terminal em 4..."
+sleep 1
+echo "Reiniciando Terminal em 3..."
+sleep 1
+echo "Reiniciando Terminal em 2..."
+sleep 1
+echo "Reiniciando Terminal em 1..."
+sleep 1
+echo "Reiniciando Terminal em 0..."
+sleep 1
+sudo reboot
