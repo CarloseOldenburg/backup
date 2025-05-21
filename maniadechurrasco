@@ -1,8 +1,8 @@
 #!/bin/bash
 # sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | sudo bash
 
-set -e  # Para o script em caso de erro
-LOG_FILE="~/update_install_log.txt"
+set -e
+LOG_FILE="$HOME/update_install_log.txt"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
