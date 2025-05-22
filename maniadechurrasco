@@ -21,7 +21,7 @@ sudo mv vsd-launcher /usr/bin/
 vsd-launcher --clear-token
 
 # Alterar link do launcher para Food 3
-vsd-launcher -s food
+ sudo vsd-launcher -s food
 
 # Reboot do sistema
 echo "*****************Instalação Concluída*************************"
