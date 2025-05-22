@@ -1,7 +1,7 @@
 #!/bin/bash
 # sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | sudo bash
 
-set -e
+set -euo pipefail
 LOG_FILE="$HOME/update_install_log.txt"
 
 log() {
@@ -11,12 +11,7 @@ log() {
 log "Iniciando instalação"
 
 # Inicializa arquivo de status
-echo "$1" > ~/update-status.txt
-
-# Definição de versões
-VsOsInterface="2.28.4"
-VsAutoPagSE="2.33.3"
-VsFoodLauncher="2.0.0"
+echo "Atualização iniciada em $(date)" > ~/update-status.txt
 
 # Fechar Chrome se aberto
 log "Encerrando Google Chrome..."
@@ -24,12 +19,13 @@ pkill chrome || true
 
 # Preparação do ambiente
 log "Preparando ambiente..."
-sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock
-sudo ufw disable
+sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock || true
+sudo ufw disable || true
 sudo modprobe usbcore autosuspend=-1
 xfconf-query -c xfwm4 -p /general/use_compositing || xfconf-query -c xfwm4 -p /general/use_compositing -n -t bool -s false
+
 sudo apt-get update
-sudo apt-get install intel-media-va-driver -y
+sudo apt-get install -y intel-media-va-driver
 
 # Parando serviços
 log "Parando serviços NodeJS..."
@@ -46,54 +42,41 @@ sudo mv /opt/videosoft/vs-print/log/ /opt/videosoft_bkp_log/vs-print/ 2>/dev/nul
 
 # Removendo relatórios de crash e apport
 log "Removendo arquivos de crash e apport..."
-sudo rm -rf /var/crash/*
-sudo apt-get remove apport apport-symptoms -y
+sudo rm -rf /var/crash/* || true
+sudo apt-get remove -y apport apport-symptoms || true
 
 # Instalando vsd-launcher
 log "Instalando vsd-launcher..."
 sudo wget -q https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O /usr/bin/vsd-launcher
 sudo chmod 755 /usr/bin/vsd-launcher
 
-log "Executando vsd-launcher..."
+log "Executando vsd-launcher para atualização de dependências..."
+sudo vsd-launcher --clear-token
 sudo vsd-launcher -s food
 
 # Baixando e instalando novos módulos
 log "Baixando novos módulos..."
-wget -q https://cdn.vsd.app/softwares/vs-os-interface/${VsOsInterface}/vs-os-interface_${VsOsInterface}_amd64.deb
-wget -q https://cdn.vsd.app/softwares/vs-autopag-se/${VsAutoPagSE}/vs-autopag-se_${VsAutoPagSE}_amd64.deb
-wget -q https://cdn.vsd.app/softwares/vs-food-launcher/${VsFoodLauncher}/vs-food-launcher_${VsFoodLauncher}_amd64.deb
+wget -q https://cdn.vsd.app/softwares/vs-os-interface/2.28.4/vs-os-interface_2.28.4_amd64.deb
+wget -q https://cdn.vsd.app/softwares/vs-autopag-se/2.33.3/vs-autopag-se_2.33.3_amd64.deb
 wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 log "Instalando VS OS Interface..."
-sudo dpkg -i vs-os-interface_${VsOsInterface}_amd64.deb
+sudo dpkg -i vs-os-interface_2.28.4_amd64.deb
 
 log "Instalando VS AutoPag SE..."
-sudo dpkg -i vs-autopag-se_${VsAutoPagSE}_amd64.deb
-
-log "Instalando VS Food Launcher..."
-sudo dpkg -i vs-food-launcher_${VsFoodLauncher}_amd64.deb
+sudo dpkg -i vs-autopag-se_2.33.3_amd64.deb
 
 log "Instalando Google Chrome..."
 sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get install -f -y
-
-# Ajustando script do VS Food Launcher
-SCRIPT_PATH="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
-if grep -q "chromium \"\$VS_URL_APP\" \$PARAMS" "$SCRIPT_PATH"; then
-    log "Alterando navegador de chromium para google-chrome..."
-    sudo sed -i 's/chromium "$VS_URL_APP" $PARAMS/google-chrome "$VS_URL_APP" $PARAMS/g' "$SCRIPT_PATH"
-else
-    log "Navegador já configurado como google-chrome."
-fi
 
 # Limpeza dos arquivos
 log "Limpando arquivos temporários..."
 rm -f *.deb
 
-# Finalização
-log "Limpando token vsd-launcher..."
-sudo vsd-launcher --clear-token
-sudo vsd-launcher -s food
+# Atualiza status
+echo "Atualização concluída em $(date)" >> ~/update-status.txt
 
+# Finalização
 log "Instalação concluída com sucesso! Reiniciando terminal em 5 segundos..."
 for i in {5..0}; do
     echo "Reiniciando terminal em $i..."
