@@ -1,41 +1,34 @@
 #!/bin/bash
 # sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | bash
 
-set -e  # Para o script em caso de erro
+set -e  # Para parar em caso de erro
 LOG_FILE="install_log.txt"
 
-# Baixar os novos módulos
 echo "Baixando novos módulos..." | tee -a $LOG_FILE
-wget https://cdn.vsd.app/softwares/vs-os-interface/2.28.4/vs-os-interface_2.28.4_amd64.deb 2>&1 | tee -a $LOG_FILE
-wget https://cdn.vsd.app/softwares/vs-autopag-se/2.33.3/vs-autopag-se_2.33.3_amd64.deb 2>&1 | tee -a $LOG_FILE
-# Instalar os novos módulos
-echo "Instalando novos módulos..." | tee -a $LOG_FILE
-sudo dpkg -i vs-os-interface_2.24.4_amd64.deb 2>&1 | tee -a $LOG_FILE
-sudo dpkg -i vs-autopag-se_2.33.3_amd64.deb 2>&1 | tee -a $LOG_FILE
+wget --inet4-only https://cdn.vsd.app/softwares/vs-os-interface/2.28.4/vs-os-interface_2.28.4_amd64.deb
+wget --inet4-only https://cdn.vsd.app/softwares/vs-autopag-se/2.33.3/vs-autopag-se_2.33.3_amd64.deb
 
-# Instalador ferramenta
-sudo wget wget https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O vsd-launcher && sudo chmod 755 vsd-launcher && sudo mv vsd-launcher /usr/bin/
+echo "Instalando novos módulos..." | tee -a $LOG_FILE
+sudo dpkg -i vs-os-interface_2.28.4_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
+sudo dpkg -i vs-autopag-se_2.33.3_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
+
+echo "Instalando vsd-launcher..." | tee -a $LOG_FILE
+sudo wget --inet4-only https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O vsd-launcher
+sudo chmod 755 vsd-launcher
+sudo mv vsd-launcher /usr/bin/
 
 # Limpeza de Cache
 vsd-launcher --clear-token
 
-# Alterar link do launcher - Food3
+# Alterar link do launcher para Food 3
 vsd-launcher -s food
 
 # Reboot do sistema
 echo "*****************Instalação Concluída*************************"
 echo "Reiniciando sistema..."
-sleep 1
-echo "Reiniciando Terminal em 5..."
-sleep 1
-echo "Reiniciando Terminal em 4..."
-sleep 1
-echo "Reiniciando Terminal em 3..."
-sleep 1
-echo "Reiniciando Terminal em 2..."
-sleep 1
-echo "Reiniciando Terminal em 1..."
-sleep 1
-echo "Reiniciando Terminal em 0..."
-sleep 1
+for i in {5..0}; do
+    echo "Reiniciando Terminal em $i..."
+    sleep 1
+done
+
 sudo reboot
