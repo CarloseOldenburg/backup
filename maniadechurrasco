@@ -1,87 +1,41 @@
 #!/bin/bash
-# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | sudo bash
+# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/versao.sh | bash
 
-set -euo pipefail
-LOG_FILE="$HOME/update_install_log.txt"
+set -e  # Para o script em caso de erro
+LOG_FILE="install_log.txt"
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
-}
+# Baixar os novos módulos
+echo "Baixando novos módulos..." | tee -a $LOG_FILE
+wget https://cdn.vsd.app/softwares/vs-os-interface/2.28.4/vs-os-interface_2.28.4_amd64.deb 2>&1 | tee -a $LOG_FILE
+wget https://cdn.vsd.app/softwares/vs-autopag-se/2.33.3/vs-autopag-se_2.33.3_amd64.deb 2>&1 | tee -a $LOG_FILE
+# Instalar os novos módulos
+echo "Instalando novos módulos..." | tee -a $LOG_FILE
+sudo dpkg -i vs-os-interface_2.24.4_amd64.deb 2>&1 | tee -a $LOG_FILE
+sudo dpkg -i vs-autopag-se_2.33.3_amd64.deb 2>&1 | tee -a $LOG_FILE
 
-log "Iniciando instalação"
+# Instalador ferramenta
+sudo wget wget https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O vsd-launcher && sudo chmod 755 vsd-launcher && sudo mv vsd-launcher /usr/bin/
 
-# Inicializa arquivo de status
-echo "Atualização iniciada em $(date)" > ~/update-status.txt
+# Limpeza de Cache
+vsd-launcher --clear-token
 
-# Fechar Chrome se aberto
-log "Encerrando Google Chrome..."
-pkill chrome || true
+# Alterar link do launcher - Food3
+vsd-launcher -s food
 
-# Preparação do ambiente
-log "Preparando ambiente..."
-sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock || true
-sudo ufw disable || true
-sudo modprobe usbcore autosuspend=-1
-xfconf-query -c xfwm4 -p /general/use_compositing || xfconf-query -c xfwm4 -p /general/use_compositing -n -t bool -s false
-
-sudo apt-get update
-sudo apt-get install -y intel-media-va-driver
-
-# Parando serviços
-log "Parando serviços NodeJS..."
-pkill node || true
-
-# Criando backups
-log "Criando backups dos logs..."
-sudo mkdir -p /opt/videosoft_bkp_log/{vs-autopag-se,vs-os-interface,vs-print}
-
-sudo mv /opt/videosoft/*.tar.gz /opt/videosoft_bkp_log/ 2>/dev/null || true
-sudo mv /opt/videosoft/vs-autopag-se/log/ /opt/videosoft_bkp_log/vs-autopag-se/ 2>/dev/null || true
-sudo mv /opt/videosoft/vs-os-interface/log/ /opt/videosoft_bkp_log/vs-os-interface/ 2>/dev/null || true
-sudo mv /opt/videosoft/vs-print/log/ /opt/videosoft_bkp_log/vs-print/ 2>/dev/null || true
-
-# Removendo relatórios de crash e apport
-log "Removendo arquivos de crash e apport..."
-sudo rm -rf /var/crash/* || true
-sudo apt-get remove -y apport apport-symptoms || true
-
-# Instalando vsd-launcher
-log "Instalando vsd-launcher..."
-sudo wget -q https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O /usr/bin/vsd-launcher
-sudo chmod 755 /usr/bin/vsd-launcher
-
-log "Executando vsd-launcher para atualização de dependências..."
-sudo vsd-launcher --clear-token
-sudo vsd-launcher -s food
-
-# Baixando e instalando novos módulos
-log "Baixando novos módulos..."
-wget -q https://cdn.vsd.app/softwares/vs-os-interface/2.28.4/vs-os-interface_2.28.4_amd64.deb
-wget -q https://cdn.vsd.app/softwares/vs-autopag-se/2.33.3/vs-autopag-se_2.33.3_amd64.deb
-wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-log "Instalando VS OS Interface..."
-sudo dpkg -i vs-os-interface_2.28.4_amd64.deb
-
-log "Instalando VS AutoPag SE..."
-sudo dpkg -i vs-autopag-se_2.33.3_amd64.deb
-
-log "Instalando Google Chrome..."
-sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get install -f -y
-
-# Limpeza dos arquivos
-log "Limpando arquivos temporários..."
-rm -f *.deb
-
-# Atualiza status
-echo "Atualização concluída em $(date)" >> ~/update-status.txt
-
-# Finalização
-log "Instalação concluída com sucesso! Reiniciando terminal em 5 segundos..."
-for i in {5..0}; do
-    echo "Reiniciando terminal em $i..."
-    sleep 1
-done
-
-log "Reiniciando sistema..."
+# Reboot do sistema
+echo "*****************Instalação Concluída*************************"
+echo "Reiniciando sistema..."
+sleep 1
+echo "Reiniciando Terminal em 5..."
+sleep 1
+echo "Reiniciando Terminal em 4..."
+sleep 1
+echo "Reiniciando Terminal em 3..."
+sleep 1
+echo "Reiniciando Terminal em 2..."
+sleep 1
+echo "Reiniciando Terminal em 1..."
+sleep 1
+echo "Reiniciando Terminal em 0..."
+sleep 1
 sudo reboot
