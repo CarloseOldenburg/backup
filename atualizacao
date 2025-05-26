@@ -1,16 +1,16 @@
 #!/bin/bash
-# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/maniadechurrasco | bash
+# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/atualizacao | bash
 
 set -e  # Para parar em caso de erro
 LOG_FILE="install_log.txt"
 
 echo "Baixando novos módulos..." | tee -a $LOG_FILE
 wget --inet4-only https://cdn.vsd.app/softwares/vs-os-interface/2.28.4/vs-os-interface_2.28.4_amd64.deb
-wget --inet4-only https://cdn.vsd.app/softwares/vs-autopag-se/2.33.3/vs-autopag-se_2.33.3_amd64.deb
+wget --inet4-only https://cdn.vsd.app/softwares/vs-autopag-se/2.33.7/vs-autopag-se_2.33.7_amd64.deb
 
 echo "Instalando novos módulos..." | tee -a $LOG_FILE
 sudo dpkg -i vs-os-interface_2.28.4_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
-sudo dpkg -i vs-autopag-se_2.33.3_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
+sudo dpkg -i vs-autopag-se_2.33.7_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
 
 echo "Instalando vsd-launcher..." | tee -a $LOG_FILE
 sudo wget --inet4-only https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O vsd-launcher
