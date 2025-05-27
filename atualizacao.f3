@@ -20,12 +20,6 @@ sudo wget --inet4-only https://raw.githubusercontent.com/wilker-santos/VSDImplan
 sudo chmod 755 vsd-launcher
 sudo mv vsd-launcher /usr/bin/
 
-# Limpeza de Cache
-vsd-launcher --clear-token
-
-# Alterar link do launcher para Food 3
-sudo vsd-launcher -s food
-
 # Função para exibir a ajuda
 function display_help() {
     echo "Uso: vsd-launcher -s <software> [-v <version>] [--homolog] [--clear-cache] [--clear-token]"
