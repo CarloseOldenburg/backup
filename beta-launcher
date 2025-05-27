@@ -52,25 +52,17 @@ backup() {
 }
 
 # ========================================
-# VERIFICAÇÃO DE STATUS DOS MÓDULOS
+# VERIFICAÇÃO DE STATUS DOS MÓDULOS (LOCAL)
 # ========================================
 check_status() {
     STATUS_LOCAL_OS=$(sudo service vs-os-interface status | grep Active || echo "Não encontrado")
     STATUS_LOCAL_AUTOPAG=$(sudo service vs-autopag-se status | grep Active || echo "Não encontrado")
 
-    STATUS_REMOTE=$(curl -s https://food2.vsd.app/status/)
-
-    VERSAO_OS=$(echo "$STATUS_REMOTE" | grep -oP 'vs-os-interface.*?Versão: \K[0-9.]+' || echo "N/A")
-    VERSAO_AUTOPAG=$(echo "$STATUS_REMOTE" | grep -oP 'vs-autopag-se.*?Versão: \K[0-9.]+' || echo "N/A")
-
     whiptail --title "Status dos Módulos" --msgbox "🖥️ Status Local:
 vs-os-interface: $STATUS_LOCAL_OS
-vs-autopag-se: $STATUS_LOCAL_AUTOPAG
-
-🌐 Status via Navegador:
-vs-os-interface: $VERSAO_OS
-vs-autopag-se: $VERSAO_AUTOPAG" 20 70
+vs-autopag-se: $STATUS_LOCAL_AUTOPAG" 15 70
 }
+
 
 # ========================================
 # ATUALIZAÇÃO DO LAUNCHER COM REINICIO
