@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# sudo wget -O /usr/bin/vsd-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/vsd-launcher && sudo chmod +x /usr/bin/vsd-launcher
+# sudo wget -O /usr/bin/beta-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher && sudo chmod +x /usr/bin/beta-launcher
 
 # ========================
 # CONFIGURAÇÃO
 # ========================
-VERSION_SISTEMA="2.1"
-LOG_FILE="/var/log/vsd-launcher.log"
+VERSION_SISTEMA="3.0"
+LOG_FILE="/var/log/beta-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
-REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/vsd-launcher"
+REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
 
 # ========================
 # FUNÇÃO DE LOG
@@ -29,10 +29,10 @@ fi
 # ATUALIZAR LAUNCHER
 # ========================
 update_launcher() {
-    log "Iniciando atualização do vsd-launcher..."
-    wget -O /usr/bin/vsd-launcher "$REPO_URL" && chmod +x /usr/bin/vsd-launcher
+    log "Iniciando atualização do beta-launcher..."
+    wget -O /usr/bin/beta-launcher "$REPO_URL" && chmod +x /usr/bin/beta-launcher
     log "Atualização concluída."
-    whiptail --title "Atualização" --msgbox "vsd-launcher atualizado com sucesso!" 10 60
+    whiptail --title "Atualização" --msgbox "beta-launcher atualizado com sucesso!" 10 60
 }
 
 # ========================
@@ -186,9 +186,9 @@ install_ifood() {
 # DESINSTALAR
 # ========================
 uninstall() {
-    rm -f /usr/bin/vsd-launcher
+    rm -f /usr/bin/beta-launcher
     rm -f "$LOG_FILE"
-    whiptail --title "Desinstalado" --msgbox "vsd-launcher foi desinstalado com sucesso." 10 60
+    whiptail --title "Desinstalado" --msgbox "beta-launcher foi desinstalado com sucesso." 10 60
     exit 0
 }
 
@@ -197,12 +197,12 @@ uninstall() {
 # ========================
 while true; do
     OPTION=$(whiptail --title "VSD Launcher" --menu "Escolha uma opção:" 20 60 10 \
-        "1" "🔄 Atualizar vsd-launcher" \
+        "1" "🔄 Atualizar beta-launcher" \
         "2" "🌐 Atualizar URL" \
         "3" "🗑️ Limpar cache do Chrome" \
         "4" "🗑️ Limpar token + cache" \
         "5" "📦 Gerenciar Módulos" \
-        "6" "❌ Desinstalar vsd-launcher" \
+        "6" "❌ Desinstalar beta-launcher" \
         "7" "ℹ️ Info" \
         "8" "🚪 Sair" 3>&1 1>&2 2>&3)
 
