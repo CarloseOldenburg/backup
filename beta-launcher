@@ -1,80 +1,116 @@
 #!/bin/bash
 
-# sudo wget -O /usr/bin/beta-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher && sudo chmod +x /usr/bin/beta-launcher
+# ========================================
+# Beta Launcher - VSD
+# Desenvolvido por Carlos Eduardo Oldenburg
+# Versão: 7.0
+# ========================================
 
-# ========================
-# CONFIGURAÇÃO
-# ========================
-VERSION_SISTEMA="3.2"
-LOG_FILE="/var/log/beta-launcher.log"
-CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
+# ========================================
+# CONFIGURAÇÕES
+# ========================================
+VERSION_SISTEMA="7.0"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
+LOG_FILE="/var/log/beta-launcher.log"
+BACKUP_DIR="/opt/backup-vsd"
 
-# ========================
+mkdir -p "$BACKUP_DIR"
+
+# ========================================
 # FUNÇÃO DE LOG
-# ========================
+# ========================================
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" | sudo tee -a "$LOG_FILE" >/dev/null
 }
 
-# ========================
+# ========================================
 # CHECA ROOT
-# ========================
+# ========================================
 if [[ $EUID -ne 0 ]]; then
     echo "Execute como root (use sudo)."
     exit 1
 fi
 
-# ========================
+# ========================================
 # CHECA DEPENDÊNCIAS
-# ========================
+# ========================================
 if ! dpkg -l | grep -qw whiptail; then
     log "Instalando dependências necessárias..."
-    sudo apt update -y && sudo apt install -y whiptail
+    sudo apt update -y && sudo apt install -y whiptail curl
 fi
 
-# ========================
-# ATUALIZAR LAUNCHER COM RESTART
-# ========================
+# ========================================
+# BACKUP AUTOMÁTICO
+# ========================================
+backup() {
+    DATE=$(date +"%Y-%m-%d_%H-%M-%S")
+    mkdir -p "$BACKUP_DIR/$DATE"
+    cp -r /opt/videosoft/* "$BACKUP_DIR/$DATE" 2>/dev/null
+    log "Backup realizado em $BACKUP_DIR/$DATE"
+}
+
+# ========================================
+# VERIFICAÇÃO DE STATUS DOS MÓDULOS
+# ========================================
+check_status() {
+    STATUS_LOCAL_OS=$(sudo service vs-os-interface status | grep Active || echo "Não encontrado")
+    STATUS_LOCAL_AUTOPAG=$(sudo service vs-autopag-se status | grep Active || echo "Não encontrado")
+
+    STATUS_REMOTE=$(curl -s https://food2.vsd.app/status/)
+
+    VERSAO_OS=$(echo "$STATUS_REMOTE" | grep -oP 'vs-os-interface.*?Versão: \K[0-9.]+' || echo "N/A")
+    VERSAO_AUTOPAG=$(echo "$STATUS_REMOTE" | grep -oP 'vs-autopag-se.*?Versão: \K[0-9.]+' || echo "N/A")
+
+    whiptail --title "Status dos Módulos" --msgbox "🖥️ Status Local:
+vs-os-interface: $STATUS_LOCAL_OS
+vs-autopag-se: $STATUS_LOCAL_AUTOPAG
+
+🌐 Status via Navegador:
+vs-os-interface: $VERSAO_OS
+vs-autopag-se: $VERSAO_AUTOPAG" 20 70
+}
+
+# ========================================
+# ATUALIZAÇÃO DO LAUNCHER COM REINICIO
+# ========================================
 update_launcher() {
-    log "Iniciando atualização do beta-launcher..."
     wget -O /usr/bin/beta-launcher "$REPO_URL" && chmod +x /usr/bin/beta-launcher
-    log "Atualização concluída."
-    whiptail --title "Atualização" --msgbox "beta-launcher atualizado com sucesso!\nO launcher será reiniciado." 10 60
+    log "Atualização do launcher concluída."
+    whiptail --title "Atualização" --msgbox "Launcher atualizado com sucesso!\nReiniciando..." 10 60
     exec /usr/bin/beta-launcher
     exit
 }
 
-# ========================
+# ========================================
 # VER LOGS
-# ========================
+# ========================================
 show_logs() {
     if [[ -f "$LOG_FILE" ]]; then
         whiptail --textbox "$LOG_FILE" 25 70
     else
-        whiptail --title "Logs" --msgbox "Arquivo de log não encontrado:\n$LOG_FILE" 10 60
+        whiptail --title "Logs" --msgbox "Arquivo de log não encontrado." 10 60
     fi
 }
 
-# ========================
+# ========================================
 # APAGAR LOGS
-# ========================
+# ========================================
 clear_logs() {
     > "$LOG_FILE"
     whiptail --title "Apagar Logs" --msgbox "Logs apagados com sucesso." 10 60
 }
 
-# ========================
-# FUNÇÃO LIMPAR CACHE
-# ========================
+# ========================================
+# LIMPAR CACHE
+# ========================================
 clear_cache() {
     rm -rf ~/.cache/google-chrome/* ~/.config/google-chrome/*
     log "Cache do Chrome limpo."
 }
 
-# ========================
-# FUNÇÃO LIMPAR TOKEN + CACHE
-# ========================
+# ========================================
+# LIMPAR TOKEN + CACHE
+# ========================================
 clear_token() {
     clear_cache
     rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
@@ -82,65 +118,32 @@ clear_token() {
     log "Token e arquivos de recuperação excluídos."
 }
 
-# ========================
-# ATUALIZAR URL
-# ========================
-update_url() {
-    if [[ ! -f "$CONFIG_FILE" ]]; then
-        whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
-        log "Arquivo não encontrado: $CONFIG_FILE"
-        return 1
-    fi
-
-    SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
-        "food" "Sistema Food" \
-        "self" "Selfcheckout" 3>&1 1>&2 2>&3)
-
-    [[ -z "$SERVICE" ]] && return 0
-
-    if [[ "$SERVICE" == "food" ]]; then
-        VERSION_OPTION=$(whiptail --title "Versão" --menu "Versão (Food apenas):" 15 50 3 \
-            "2" "Food 2.0" \
-            "3" "Food 3.0 (Padrão)" \
-            "none" "Não especificar" 3>&1 1>&2 2>&3)
-
-        [[ "$VERSION_OPTION" == "none" ]] && VERSION_OPTION=""
-    else
-        VERSION_OPTION=""
-    fi
-
-    if whiptail --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60; then
-        HOMOLOG="true"
-    else
-        HOMOLOG="false"
-    fi
-
-    if [[ "$SERVICE" == "food" ]]; then
-        if [[ "$VERSION_OPTION" == "2" ]]; then
-            [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://food2.homolog.vsd.app" || NEW_URL="https://food2.vsd.app"
-        else
-            [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://food.homolog.vsd.app" || NEW_URL="https://food.vsd.app"
-        fi
-    elif [[ "$SERVICE" == "self" ]]; then
-        [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://selfcheckout.homolog.vsd.app" || NEW_URL="https://selfcheckout.vsd.app"
-    fi
-
-    sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$NEW_URL\"|" "$CONFIG_FILE"
-
-    log "URL atualizada para: $NEW_URL"
-    whiptail --title "Sucesso" --msgbox "✅ URL atualizada para:\n$NEW_URL" 10 60
-}
-
-# ========================
+# ========================================
 # INFO DO SISTEMA
-# ========================
+# ========================================
 show_info() {
-    whiptail --title "Informações do Sistema" --msgbox "Beta Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Oldenburg\nRepositório: $REPO_URL" 12 60
+    whiptail --title "Informações do Sistema" --msgbox "Beta Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Eduardo Oldenburg\nRepositório: $REPO_URL" 12 60
 }
 
-# ========================
-# GERENCIAR MÓDULOS
-# ========================
+# ========================================
+# GERENCIAR MÓDULOS (EXEMPLO VS-OS-INTERFACE)
+# ========================================
+install_module() {
+    NOME="$1"
+    VERSAO="$2"
+    URL="$3"
+
+    backup
+
+    log "Baixando $NOME versão $VERSAO"
+    wget "$URL" -O "${NOME}_${VERSAO}.deb"
+    log "Instalando $NOME..."
+    sudo dpkg -i "${NOME}_${VERSAO}.deb" 2>&1 | tee -a "$LOG_FILE" || sudo apt-get install -f -y
+}
+
+# ========================================
+# MENU DE MÓDULOS
+# ========================================
 manage_modules() {
     MODULE=$(whiptail --title "Gerenciar Módulos" --menu "Escolha o módulo:" 20 60 10 \
         "1" "vs-autopag" \
@@ -164,12 +167,7 @@ install_autopag() {
 
     [[ -z "$VERSION" ]] && return
 
-    URL="https://cdn.vsd.app/softwares/vs-autopag-se/$VERSION/vs-autopag-se_${VERSION}_amd64.deb"
-
-    log "Baixando vs-autopag versão $VERSION"
-    wget --inet4-only "$URL"
-    log "Instalando vs-autopag..."
-    sudo dpkg -i vs-autopag-se_${VERSION}_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
+    install_module "vs-autopag-se" "$VERSION" "https://cdn.vsd.app/softwares/vs-autopag-se/$VERSION/vs-autopag-se_${VERSION}_amd64.deb"
 }
 
 install_os_interface() {
@@ -181,12 +179,7 @@ install_os_interface() {
 
     [[ -z "$VERSION" ]] && return
 
-    URL="https://cdn.vsd.app/softwares/vs-os-interface/$VERSION/vs-os-interface_${VERSION}_amd64.deb"
-
-    log "Baixando vs-os-interface versão $VERSION"
-    wget --inet4-only "$URL"
-    log "Instalando vs-os-interface..."
-    sudo dpkg -i vs-os-interface_${VERSION}_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
+    install_module "vs-os-interface" "$VERSION" "https://cdn.vsd.app/softwares/vs-os-interface/$VERSION/vs-os-interface_${VERSION}_amd64.deb"
 }
 
 install_ifood() {
@@ -196,8 +189,10 @@ install_ifood() {
 
     [[ -z "$VERSION" ]] && return
 
+    backup
+
     log "Removendo módulos antigos do iFood..."
-    sudo apt purge -y vsd-payment pinpad-server 2>&1 | tee -a $LOG_FILE
+    sudo apt purge -y vsd-payment pinpad-server 2>&1 | tee -a "$LOG_FILE"
     sudo rm -rf /home/videosoft/.pinpad_server 2>/dev/null
     sudo rm -f /home/videosoft/DesktopPlugin.db 2>/dev/null
 
@@ -211,13 +206,13 @@ install_ifood() {
     wget https://github.com/getzoop/zoop-package-public/releases/download/zoop-desktop-server_3.10.0-beta/pinpad-server-installer_linux_3.10.0-beta.deb
 
     log "Instalando módulos..."
-    sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a $LOG_FILE
-    sudo dpkg -i vsd-payment_${PAYMENT}_amd64.deb 2>&1 | tee -a $LOG_FILE
+    sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a "$LOG_FILE"
+    sudo dpkg -i vsd-payment_${PAYMENT}_amd64.deb 2>&1 | tee -a "$LOG_FILE"
 }
 
-# ========================
-# DESINSTALAR
-# ========================
+# ========================================
+# DESINSTALAR LAUNCHER
+# ========================================
 uninstall() {
     rm -f /usr/bin/beta-launcher
     rm -f "$LOG_FILE"
@@ -225,39 +220,35 @@ uninstall() {
     exit 0
 }
 
-# ========================
+# ========================================
 # MENU PRINCIPAL
-# ========================
+# ========================================
 while true; do
-    OPTION=$(whiptail --title "Beta Launcher" --menu "Escolha uma opção:" 20 60 10 \
+    OPTION=$(whiptail --title "Beta Launcher" --menu "Escolha uma opção:" 20 60 11 \
         "1" "🔄 Atualizar beta-launcher" \
         "2" "🌐 Atualizar URL" \
         "3" "🧹 Limpar cache do Chrome" \
         "4" "🧹 Limpar token + cache" \
         "5" "📦 Gerenciar Módulos" \
-        "6" "📄 Ver Logs" \
-        "7" "🗑️ Apagar Logs" \
-        "8" "❌ Desinstalar beta-launcher" \
-        "9" "ℹ️ Info" \
-        "10" "🚪 Sair" 3>&1 1>&2 2>&3)
+        "6" "🔍 Verificar Status dos Módulos" \
+        "7" "📄 Ver Logs" \
+        "8" "🗑️ Apagar Logs" \
+        "9" "❌ Desinstalar beta-launcher" \
+        "10" "ℹ️ Info" \
+        "11" "🚪 Sair" 3>&1 1>&2 2>&3)
 
     case $OPTION in
         1) update_launcher ;;
         2) update_url ;;
-        3)
-            clear_cache
-            whiptail --title "Limpeza" --msgbox "Cache do Chrome limpo." 10 60
-            ;;
-        4)
-            clear_token
-            whiptail --title "Limpeza" --msgbox "Token e cache limpos." 10 60
-            ;;
+        3) clear_cache ;;
+        4) clear_token ;;
         5) manage_modules ;;
-        6) show_logs ;;
-        7) clear_logs ;;
-        8) uninstall ;;
-        9) show_info ;;
-        10) exit 0 ;;
+        6) check_status ;;
+        7) show_logs ;;
+        8) clear_logs ;;
+        9) uninstall ;;
+        10) show_info ;;
+        11) exit 0 ;;
         *) exit 0 ;;
     esac
 done
