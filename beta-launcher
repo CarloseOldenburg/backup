@@ -3,13 +3,13 @@
 # ========================================
 # Beta Launcher - VSD
 # Desenvolvido por Carlos Oldenburg
-# Versão: 8.0 FINAL
+# Versão: 8.1 FINAL
 # ========================================
 
 # ========================================
 # CONFIGURAÇÕES
 # ========================================
-VERSION_SISTEMA="8.0 - Beta"
+VERSION_SISTEMA="8.1 - Beta"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
 LOG_FILE="/var/log/beta-launcher.log"
 BACKUP_DIR="/opt/backup-vsd"
@@ -33,11 +33,23 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # ========================================
-# CHECA E INSTALA DEPENDÊNCIAS
+# CHECA E INSTALA DEPENDÊNCIAS UMA VEZ
 # ========================================
-log "Verificando dependências..."
-sudo apt update -y
-sudo apt install -y whiptail curl wget dpkg
+check_dependencies() {
+    MISSING=""
+    for pkg in whiptail curl wget dpkg; do
+        if ! dpkg -l | grep -qw "$pkg"; then
+            MISSING="$MISSING $pkg"
+        fi
+    done
+
+    if [[ -n "$MISSING" ]]; then
+        log "Instalando dependências: $MISSING"
+        sudo apt update -y && sudo apt install -y $MISSING
+    fi
+}
+
+check_dependencies
 
 # ========================================
 # BACKUP AUTOMÁTICO
@@ -101,7 +113,7 @@ update_url() {
 # LIMPAR CACHE
 # ========================================
 clear_cache() {
-    rm -rf ~/.cache/google-chrome/* ~/.config/google-chrome/*
+    rm -rf /home/$USUARIO/.cache/google-chrome/* /home/$USUARIO/.config/google-chrome/*
     log "Cache do Chrome limpo."
     whiptail --title "Limpeza de Cache" --msgbox "Cache do Google Chrome limpo com sucesso." 10 60
 }
