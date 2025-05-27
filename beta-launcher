@@ -113,7 +113,8 @@ update_url() {
 # LIMPAR CACHE
 # ========================================
 clear_cache() {
-    rm -rf /home/$USUARIO/.cache/google-chrome/* /home/$USUARIO/.config/google-chrome/*
+    rm -r .cache/google-chrome/*
+    rm -r .config/google-chrome/*
     log "Cache do Chrome limpo."
     whiptail --title "Limpeza de Cache" --msgbox "Cache do Google Chrome limpo com sucesso." 10 60
 }
@@ -123,8 +124,10 @@ clear_cache() {
 # ========================================
 clear_token() {
     clear_cache
-    rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
-    rm -f /opt/videosoft/vs-os-interface/log/_database_recovery* 2>/dev/null
+    rm -rf ~/.cache/google-chrome/*
+    rm -rf ~/.config/google-chrome/*
+    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token* && echo "Arquivo _database_token* excluído."
+    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery* && echo "Arquivo _database_recovery* excluído."
     log "Token e arquivos de recuperação excluídos."
     whiptail --title "Limpeza" --msgbox "Token e cache limpos com sucesso." 10 60
 }
