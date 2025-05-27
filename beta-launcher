@@ -3,7 +3,7 @@
 # ========================================
 # Beta Launcher - VSD
 # Desenvolvido por Carlos Oldenburg
-# Versão: 4.2
+# Versão: 4.3
 # ========================================
 
 # ========================================
@@ -127,6 +127,57 @@ clear_token() {
 # ========================================
 show_info() {
     whiptail --title "Informações do Sistema" --msgbox "Beta Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Oldenburg\nRepositório: $REPO_URL" 12 60
+}
+
+# ========================================
+# FUNÇÃO ATUALIZAR URL
+# ========================================
+update_url() {
+    CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
+
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
+        log "Arquivo não encontrado: $CONFIG_FILE"
+        return 1
+    fi
+
+    SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
+        "food" "Sistema Food" \
+        "self" "Selfcheckout" 3>&1 1>&2 2>&3)
+
+    [[ -z "$SERVICE" ]] && return
+
+    if [[ "$SERVICE" == "food" ]]; then
+        VERSION_OPTION=$(whiptail --title "Versão" --menu "Versão (Food apenas):" 15 50 3 \
+            "2" "Food 2.0" \
+            "3" "Food 3.0 (Padrão)" \
+            "none" "Não especificar" 3>&1 1>&2 2>&3)
+
+        [[ "$VERSION_OPTION" == "none" ]] && VERSION_OPTION=""
+    else
+        VERSION_OPTION=""
+    fi
+
+    if whiptail --defaultno --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60; then
+        HOMOLOG="true"
+    else
+        HOMOLOG="false"
+    fi
+
+    if [[ "$SERVICE" == "food" ]]; then
+        if [[ "$VERSION_OPTION" == "2" ]]; then
+            [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://food2.homolog.vsd.app" || NEW_URL="https://food2.vsd.app"
+        else
+            [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://food.homolog.vsd.app" || NEW_URL="https://food.vsd.app"
+        fi
+    elif [[ "$SERVICE" == "self" ]]; then
+        [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://selfcheckout.homolog.vsd.app" || NEW_URL="https://selfcheckout.vsd.app"
+    fi
+
+    sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$NEW_URL\"|" "$CONFIG_FILE"
+
+    log "URL atualizada para: $NEW_URL"
+    whiptail --title "Sucesso" --msgbox "✅ URL atualizada para:\n$NEW_URL" 10 60
 }
 
 # ========================================
