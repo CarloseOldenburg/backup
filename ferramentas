@@ -116,8 +116,20 @@ function clear_cache() {
 function clear_token() {
     rm -r .cache/google-chrome/*
     rm -r .config/google-chrome/*
-    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token*
-    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery*
+    echo "Cache do Google Chrome limpo."
+
+    # Verifica e exclui o arquivo _database_token* se existir
+    if [ -e /opt/videosoft/vs-os-interface/log/_database_token* ]; then
+        sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token*
+        echo "Arquivo _database_token* excluído."
+    fi
+
+    # Verifica e exclui o arquivo _database_recovery* se existir
+    if [ -e /opt/videosoft/vs-os-interface/log/_database_recovery* ]; then
+        sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery*
+        echo "Arquivo _database_recovery* excluído."
+    fi
+
     echo "Token e cache do Google Chrome limpos."
 }
 
