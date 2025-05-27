@@ -16,7 +16,7 @@ sudo dpkg -i vs-autopag-se_2.33.7_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-
 
 # Instalando vsd-launcher
 echo "Instalando vsd-launcher..." | tee -a $LOG_FILE
-sudo wget --inet4-only https://raw.githubusercontent.com/wilker-santos/VSDImplantUpdater/main/vsd-launcher.sh -O vsd-launcher
+sudo wget --inet4-only https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/ferramentas -O vsd-launcher
 sudo chmod 755 vsd-launcher
 sudo mv vsd-launcher /usr/bin/
 
