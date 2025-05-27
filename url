@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# sudo wget https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/url
+
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 
 # Verifica se o arquivo existe
