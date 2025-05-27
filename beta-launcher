@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# sudo wget -O /usr/bin/beta-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher && sudo chmod +x /usr/bin/beta-launcher
+
 # ========================================
 # Beta Launcher - VSD
 # Desenvolvido por Carlos Oldenburg
