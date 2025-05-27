@@ -5,7 +5,7 @@
 # ========================
 # CONFIGURAÇÃO
 # ========================
-VERSION_SISTEMA="6.1"
+VERSION_SISTEMA="3.2"
 LOG_FILE="/var/log/beta-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
