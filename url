@@ -1,0 +1,57 @@
+#!/bin/bash
+
+CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
+
+# Verifica se o arquivo existe
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Arquivo de configuração não encontrado em: $CONFIG_FILE"
+    exit 1
+fi
+
+# Escolher o serviço
+echo "Selecione o serviço:"
+select service in "food" "self"; do
+    case $service in
+        food|self) break ;;
+        *) echo "Opção inválida." ;;
+    esac
+done
+
+# Se for food, escolher versão
+if [[ "$service" == "food" ]]; then
+    echo "Selecione a versão:"
+    select version in "2" "3" "padrão"; do
+        case $version in
+            2) versao="2"; break ;;
+            3|padrão) versao=""; break ;;
+            *) echo "Opção inválida." ;;
+        esac
+    done
+else
+    versao=""
+fi
+
+# Escolher ambiente
+echo "Usar ambiente de HOMOLOGAÇÃO? (s/n)"
+read -r resp
+if [[ "$resp" == "s" || "$resp" == "S" ]]; then
+    homolog="true"
+else
+    homolog="false"
+fi
+
+# Definir a nova URL
+if [[ "$service" == "food" ]]; then
+    if [[ "$versao" == "2" ]]; then
+        [[ "$homolog" == "true" ]] && new_url="https://food2.homolog.vsd.app" || new_url="https://food2.vsd.app"
+    else
+        [[ "$homolog" == "true" ]] && new_url="https://food.homolog.vsd.app" || new_url="https://food.vsd.app"
+    fi
+elif [[ "$service" == "self" ]]; then
+    [[ "$homolog" == "true" ]] && new_url="https://selfcheckout.homolog.vsd.app" || new_url="https://selfcheckout.vsd.app"
+fi
+
+# Atualizar a linha da URL no arquivo
+sudo sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$CONFIG_FILE"
+
+echo "✅ URL atualizada para: $new_url"
