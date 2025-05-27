@@ -1,17 +1,15 @@
 #!/bin/bash
 
-# sudo wget -O /usr/bin/beta-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher && sudo chmod +x /usr/bin/beta-launcher
-
 # ========================================
 # Beta Launcher - VSD
 # Desenvolvido por Carlos Eduardo Oldenburg
-# Versão: 7.0
+# Versão: 7.1
 # ========================================
 
 # ========================================
 # CONFIGURAÇÕES
 # ========================================
-VERSION_SISTEMA="7.0"
+VERSION_SISTEMA="7.1"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
 LOG_FILE="/var/log/beta-launcher.log"
 BACKUP_DIR="/opt/backup-vsd"
@@ -63,6 +61,16 @@ vs-os-interface: $STATUS_LOCAL_OS
 vs-autopag-se: $STATUS_LOCAL_AUTOPAG" 15 70
 }
 
+# ========================================
+# REINICIAR MÓDULOS
+# ========================================
+restart_modules() {
+    sudo service vs-os-interface restart
+    sudo service vs-autopag-se restart
+
+    log "Módulos reiniciados (vs-os-interface e vs-autopag-se)"
+    whiptail --title "Reiniciar Módulos" --msgbox "Módulos foram reiniciados com sucesso!" 10 60
+}
 
 # ========================================
 # ATUALIZAÇÃO DO LAUNCHER COM REINICIO
@@ -120,7 +128,7 @@ show_info() {
 }
 
 # ========================================
-# GERENCIAR MÓDULOS (EXEMPLO VS-OS-INTERFACE)
+# INSTALAÇÃO DE MÓDULOS
 # ========================================
 install_module() {
     NOME="$1"
@@ -218,7 +226,7 @@ uninstall() {
 # MENU PRINCIPAL
 # ========================================
 while true; do
-    OPTION=$(whiptail --title "Beta Launcher" --menu "Escolha uma opção:" 20 60 11 \
+    OPTION=$(whiptail --title "Beta Launcher" --menu "Escolha uma opção:" 20 60 12 \
         "1" "🔄 Atualizar beta-launcher" \
         "2" "🌐 Atualizar URL" \
         "3" "🧹 Limpar cache do Chrome" \
@@ -229,7 +237,8 @@ while true; do
         "8" "🗑️ Apagar Logs" \
         "9" "❌ Desinstalar beta-launcher" \
         "10" "ℹ️ Info" \
-        "11" "🚪 Sair" 3>&1 1>&2 2>&3)
+        "11" "🚪 Sair" \
+        "12" "🔁 Reiniciar Módulos" 3>&1 1>&2 2>&3)
 
     case $OPTION in
         1) update_launcher ;;
@@ -243,6 +252,7 @@ while true; do
         9) uninstall ;;
         10) show_info ;;
         11) exit 0 ;;
+        12) restart_modules ;;
         *) exit 0 ;;
     esac
 done
