@@ -1,4 +1,4 @@
-#!/bin/bash
+🧹#!/bin/bash
 
 # sudo wget -O /usr/bin/beta-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher && sudo chmod +x /usr/bin/beta-launcher
 
@@ -208,10 +208,10 @@ while true; do
     OPTION=$(whiptail --title "Beta Launcher" --menu "Escolha uma opção:" 20 60 10 \
         "1" "🔄 Atualizar beta-launcher" \
         "2" "🌐 Atualizar URL" \
-        "3" "Limpar cache do Chrome" \
-        "4" "Limpar token + cache" \
-        "5" "Gerenciar Módulos" \
-        "6" "Ver Logs" \
+        "3" "🗑️ Limpar cache do Chrome" \
+        "4" "🗑️ Limpar token + cache" \
+        "5" "📦 Gerenciar Módulos" \
+        "6" "📄 Ver Logs" \
         "7" "❌ Desinstalar beta-launcher" \
         "8" "ℹ️ Info" \
         "9" "🚪 Sair" 3>&1 1>&2 2>&3)
