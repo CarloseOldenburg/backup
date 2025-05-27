@@ -88,6 +88,7 @@ function update_url() {
     local version="$2"
     local homolog="$3"
     local new_url=""
+    local config_file="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 
     if [[ "$service" == "food" ]]; then
         if [[ "$version" == "2" ]]; then
@@ -103,9 +104,14 @@ function update_url() {
         return 1
     fi
 
-    sudo sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" /opt/videosoft/vs-food-launcher/app/vs-food.sh
-    info "URL atualizada para: $new_url"
-    whiptail --title "URL Atualizada" --msgbox "URL atualizada para: $new_url" 10 60
+    if [[ -f "$config_file" ]]; then
+        sudo sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$config_file"
+        info "URL atualizada para: $new_url"
+        whiptail --title "URL Atualizada" --msgbox "URL atualizada para:\n$new_url" 10 60
+    else
+        error "Arquivo de configuração não encontrado."
+        whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado em:\n$config_file" 10 60
+    fi
 }
 
 # ========================
