@@ -102,35 +102,29 @@ function update_url() {
 # MENU INTERATIVO
 # ========================
 function menu() {
-    OPTION=$(whiptail --title "VSD Launcher" --menu "Escolha uma opção:" 18 60 9 \
-        "1" "Atualizar URL" \
-        "2" "Limpar cache Chrome" \
-        "3" "Limpar token + cache" \
-        "4" "Verificar atualizações" \
-        "5" "Sair" 3>&1 1>&2 2>&3)
+    while true; do
+        OPTION=$(whiptail --title "VSD Launcher" --menu "Escolha uma opção:" 18 60 9 \
+            "1" "Atualizar URL" \
+            "2" "Limpar cache Chrome" \
+            "3" "Limpar token + cache" \
+            "4" "Verificar atualizações" \
+            "5" "Desinstalar" \
+            "6" "Sair" 3>&1 1>&2 2>&3)
 
-    case $OPTION in
-        1)
-            menu_update_url
-            ;;
-        2)
-            clear_cache
-            ;;
-        3)
-            clear_token
-            ;;
-        4)
-            check_update
-            ;;
-        5)
-            info "Saindo..."
-            exit 0
-            ;;
-        *)
-            warn "Opção inválida"
-            ;;
-    esac
+        case $OPTION in
+            1) menu_update_url ;;
+            2) clear_cache ;;
+            3) clear_token ;;
+            4) check_update ;;
+            5) uninstall ;;
+            6) info "Saindo..."; exit 0 ;;
+            *) warn "Opção inválida";;
+        esac
+
+        whiptail --title "Operação concluída" --msgbox "Operação finalizada com sucesso!" 10 60
+    done
 }
+
 
 function menu_update_url() {
     SERVICE=$(whiptail --title "Escolha o serviço" --menu "Selecione:" 15 50 3 \
