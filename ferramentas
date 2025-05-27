@@ -1,66 +1,43 @@
 #!/bin/bash
-# wget https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/ferramentas -O vsd-launcher && sudo chmod 755 vsd-launcher && sudo mv vsd-launcher /usr/bin/
 
-# Função para exibir a ajuda
 function display_help() {
     echo "Uso: vsd-launcher -s <software> [-v <version>] [--homolog] [--clear-cache] [--clear-token]"
-    echo
-    echo "Opções:"
-    echo "  -s <software>   Nome do software (ex: 'food', 'self')"
-    echo "  -v <version>    Versão do software (aplicável apenas para o software 'food')"
-    echo "  --homolog       Usa a URL de homologação"
-    echo "  --clear-cache   Limpa o cache do Google Chrome"
-    echo "  --clear-token   Limpa o token e cache do Google Chrome"
-    echo
-    echo "Exemplos:"
-    echo "  vsd-launcher -s food -v 2              Atualiza a URL para 'https://food2.vsd.app'"
-    echo "  vsd-launcher -s food                   Atualiza a URL para 'https://food.vsd.app'"
-    echo "  vsd-launcher -s self                   Atualiza a URL para 'https://selfcheckout.vsd.app'"
-    echo "  vsd-launcher -s food -v 2 --homolog    Atualiza a URL para 'https://food2.homolog.vsd.app'"
-    echo "  vsd-launcher -s food --homolog         Atualiza a URL para 'https://food.homolog.vsd.app'"
-    echo "  vsd-launcher -s self --homolog         Atualiza a URL para 'https://selfcheckout.homolog.vsd.app'"
-    echo "  vsd-launcher --clear-cache             Limpa o cache do Google Chrome"
-    echo "  vsd-launcher --clear-token             Limpa o token e cache do Google Chrome"
-    echo
-    echo "Se o software for 'food' e a versão não for especificada, a versão padrão será usada."
-    echo "Para mais informações, consulte a documentação ou entre em contato com o Wilker Santos."
+    echo "Consulte a documentação para mais detalhes."
 }
 
-# Função para exibir a URL conforme os parâmetros fornecidos e atualizar o script
 function update_url() {
     local service=""
     local version=""
     local homolog=false
     local new_url=""
+    local clear_cache_flag=false
+    local clear_token_flag=false
 
-    # Parse dos parâmetros
     while [[ $# -gt 0 ]]; do
         case $1 in
             -s)
                 service=$2
-                shift
-                shift
+                shift 2
                 ;;
             -v)
                 version=$2
-                shift
-                shift
+                shift 2
                 ;;
             --homolog)
                 homolog=true
                 shift
                 ;;
-            -h|--help)
-                display_help
-                exit 0
-                ;;
             --clear-cache)
-                clear_cache
+                clear_cache_flag=true
                 shift
                 ;;
             --clear-token)
-                clear_token
+                clear_token_flag=true
                 shift
+                ;;
+            -h|--help)
+                display_help
+                exit 0
                 ;;
             *)
                 echo "Opção inválida: $1" >&2
@@ -70,7 +47,21 @@ function update_url() {
         esac
     done
 
-    # Construção da URL com base nos parâmetros
+    # Executa limpeza se solicitado
+    if [ "$clear_token_flag" = true ]; then
+        clear_token
+        exit 0
+    elif [ "$clear_cache_flag" = true ]; then
+        clear_cache
+        exit 0
+    fi
+
+    # Verifica se o serviço foi informado para operações que dependem disso
+    if [ -z "$service" ]; then
+        echo "Serviço não especificado. Utilize a opção -s." >&2
+        exit 1
+    fi
+
     if [ "$service" == "food" ]; then
         if [ "$version" == "2" ]; then
             if [ "$homolog" = true ]; then
@@ -99,45 +90,31 @@ function update_url() {
         exit 1
     fi
 
-    # Atualização do arquivo vs-food.sh com a nova URL
     sudo sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" /opt/videosoft/vs-food-launcher/app/vs-food.sh
 
     echo "URL atualizada para: $new_url"
 }
 
-# Função para limpar o cache do Google Chrome
 function clear_cache() {
-    rm -r .cache/google-chrome/*
-    rm -r .config/google-chrome/*
+    rm -rf ~/.cache/google-chrome/*
+    rm -rf ~/.config/google-chrome/*
     echo "Cache do Google Chrome limpo."
 }
 
-# Função para limpar o token e cache do Google Chrome
 function clear_token() {
-    rm -r .cache/google-chrome/*
-    rm -r .config/google-chrome/*
+    rm -rf ~/.cache/google-chrome/*
+    rm -rf ~/.config/google-chrome/*
     echo "Cache do Google Chrome limpo."
 
-    # Verifica e exclui o arquivo _database_token* se existir
-    if [ -e /opt/videosoft/vs-os-interface/log/_database_token* ]; then
-        sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token*
-        echo "Arquivo _database_token* excluído."
-    fi
-
-    # Verifica e exclui o arquivo _database_recovery* se existir
-    if [ -e /opt/videosoft/vs-os-interface/log/_database_recovery* ]; then
-        sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery*
-        echo "Arquivo _database_recovery* excluído."
-    fi
+    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token* && echo "Arquivo _database_token* excluído."
+    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery* && echo "Arquivo _database_recovery* excluído."
 
     echo "Token e cache do Google Chrome limpos."
 }
 
-# Verifica se nenhum parâmetro foi passado e exibe a ajuda
 if [ $# -eq 0 ]; then
     display_help
     exit 0
 fi
 
-# Chamada da função com os parâmetros passados para o script
 update_url "$@"
