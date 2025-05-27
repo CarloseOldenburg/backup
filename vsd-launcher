@@ -12,23 +12,24 @@ VERSION="1.0"
 LOG_FILE="/var/log/vsd-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 
-# Check root
+# Verifica se está executando como root
 if [[ $EUID -ne 0 ]]; then
-    echo "Este script precisa ser executado como root (sudo)."
+    echo "Este script precisa ser executado como root (use sudo)."
     exit 1
 fi
 
-# Log function
+# Log
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" >> "$LOG_FILE"
 }
 
-# Funções operacionais
+# Limpar cache
 clear_cache() {
     rm -rf ~/.cache/google-chrome/* ~/.config/google-chrome/*
     log "Cache do Google Chrome limpo."
 }
 
+# Limpar token
 clear_token() {
     clear_cache
     rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
@@ -36,14 +37,13 @@ clear_token() {
     log "Token e arquivos de recuperação excluídos."
 }
 
-function update_url() {
+# Atualizar URL
+update_url() {
     local service="$1"
     local version="$2"
     local homolog="$3"
     local new_url=""
-    local config_file="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 
-    # Define a URL
     if [[ "$service" == "food" ]]; then
         if [[ "$version" == "2" ]]; then
             [[ "$homolog" == "true" ]] && new_url="https://food2.homolog.vsd.app" || new_url="https://food2.vsd.app"
@@ -53,35 +53,24 @@ function update_url() {
     elif [[ "$service" == "self" ]]; then
         [[ "$homolog" == "true" ]] && new_url="https://selfcheckout.homolog.vsd.app" || new_url="https://selfcheckout.vsd.app"
     else
-        whiptail --title "Erro" --msgbox "Serviço desconhecido!" 10 60
+        log "Erro: Serviço desconhecido."
+        (whiptail --title "Erro" --msgbox "Serviço desconhecido!" 10 60) || true
         return 1
     fi
 
-    # Verifica se o arquivo existe
-    if [[ -f "$config_file" ]]; then
-        # Cria um arquivo temporário
-        tmpfile=$(mktemp)
-
-        # Lê linha por linha e substitui se encontrar VS_URL_APP
-        while IFS= read -r line; do
-            if [[ "$line" == VS_URL_APP=* ]]; then
-                echo "VS_URL_APP=\"$new_url\"" >> "$tmpfile"
-            else
-                echo "$line" >> "$tmpfile"
-            fi
-        done < "$config_file"
-
-        # Substitui o arquivo original pelo temporário
-        mv "$tmpfile" "$config_file"
-
-        whiptail --title "Sucesso" --msgbox "URL atualizada para:\n$new_url" 10 60
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sed -i "s|^\(export \)\?VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$CONFIG_FILE"
+        log "URL atualizada para: $new_url"
+        (whiptail --title "Sucesso" --msgbox "URL atualizada para:\n$new_url" 10 60) || true
         return 0
     else
-        whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$config_file" 10 60
+        log "Erro: Arquivo não encontrado."
+        (whiptail --title "Erro" --msgbox "Arquivo não encontrado:\n$CONFIG_FILE" 10 60) || true
         return 2
     fi
 }
 
+# Desinstalar
 uninstall() {
     rm -f /usr/bin/vsd-launcher
     rm -f "$LOG_FILE"
@@ -89,7 +78,9 @@ uninstall() {
     exit 0
 }
 
-# Interface menu
+# ============================
+# Interface de Menu
+# ============================
 while true; do
     OPTION=$(whiptail --title "VSD Launcher" --menu "Escolha uma opção:" 20 60 10 \
         "1" "Atualizar URL" \
@@ -106,7 +97,7 @@ while true; do
 
             [[ -z "$SERVICE" ]] && continue
 
-            VERSION=$(whiptail --title "Versão" --menu "Versão (apenas para Food):" 15 50 3 \
+            VERSION=$(whiptail --title "Versão" --menu "Versão (Food apenas):" 15 50 3 \
                 "2" "Food 2.0" \
                 "3" "Food 3.0 (Padrão)" \
                 "none" "Não especificar" 3>&1 1>&2 2>&3)
@@ -115,23 +106,14 @@ while true; do
 
             HOMOLOG=$(whiptail --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60 && echo "true" || echo "false")
 
-            update_url "$SERVICE" "$VERSION" "$HOMOLOG"
-            status=$?
-
-            if [[ $status -eq 0 ]]; then
-                whiptail --title "Sucesso" --msgbox "URL atualizada com sucesso." 10 60
-            elif [[ $status -eq 2 ]]; then
-                whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
-            else
-                whiptail --title "Erro" --msgbox "Falha ao atualizar a URL." 10 60
-            fi
+            (bash -c "update_url '$SERVICE' '$VERSION' '$HOMOLOG'")
             ;;
         2)
-            clear_cache
+            (bash -c "clear_cache")
             whiptail --title "Limpeza" --msgbox "Cache do Google Chrome limpo." 10 60
             ;;
         3)
-            clear_token
+            (bash -c "clear_token")
             whiptail --title "Limpeza" --msgbox "Token e cache limpos." 10 60
             ;;
         4)
@@ -145,3 +127,4 @@ while true; do
             ;;
     esac
 done
+
