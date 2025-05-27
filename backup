@@ -1,25 +1,38 @@
 #!/bin/bash
 
-# sudo wget -O /usr/bin/vsd-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/vsd-launcher && sudo chmod +x /usr/bin/vsd-launcher
+# sudo wget -O /usr/bin/beta-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher && sudo chmod +x /usr/bin/beta-launcher
 
 # ========================
 # CONFIGURAÇÃO
 # ========================
-VERSION="1.0"
-LOG_FILE="/var/log/vsd-launcher.log"
+VERSION_SISTEMA="3.0"
+LOG_FILE="/var/log/beta-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
-
-# Verifica se está rodando como root
-if [[ $EUID -ne 0 ]]; then
-   echo "Este script precisa ser executado como root (use sudo)."
-   exit 1
-fi
+REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
 
 # ========================
-# FUNÇÕES DE LOG
+# FUNÇÃO DE LOG
 # ========================
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" | sudo tee -a "$LOG_FILE" >/dev/null
+}
+
+# ========================
+# CHECA ROOT
+# ========================
+if [[ $EUID -ne 0 ]]; then
+    echo "Execute como root (use sudo)."
+    exit 1
+fi
+
+# ========================
+# ATUALIZAR LAUNCHER
+# ========================
+update_launcher() {
+    log "Iniciando atualização do beta-launcher..."
+    wget -O /usr/bin/beta-launcher "$REPO_URL" && chmod +x /usr/bin/beta-launcher
+    log "Atualização concluída."
+    whiptail --title "Atualização" --msgbox "beta-launcher atualizado com sucesso!" 10 60
 }
 
 # ========================
@@ -27,7 +40,7 @@ log() {
 # ========================
 clear_cache() {
     rm -rf ~/.cache/google-chrome/* ~/.config/google-chrome/*
-    log "Cache do Google Chrome limpo."
+    log "Cache do Chrome limpo."
 }
 
 # ========================
@@ -41,24 +54,21 @@ clear_token() {
 }
 
 # ========================
-# FUNÇÃO ATUALIZAR URL
+# ATUALIZAR URL
 # ========================
 update_url() {
-    # Verifica se o arquivo existe
     if [[ ! -f "$CONFIG_FILE" ]]; then
         whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
         log "Arquivo não encontrado: $CONFIG_FILE"
         return 1
     fi
 
-    # Escolher serviço
     SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
         "food" "Sistema Food" \
         "self" "Selfcheckout" 3>&1 1>&2 2>&3)
 
     [[ -z "$SERVICE" ]] && return 0
 
-    # Se for food, escolher versão
     if [[ "$SERVICE" == "food" ]]; then
         VERSION_OPTION=$(whiptail --title "Versão" --menu "Versão (Food apenas):" 15 50 3 \
             "2" "Food 2.0" \
@@ -70,14 +80,12 @@ update_url() {
         VERSION_OPTION=""
     fi
 
-    # Escolher ambiente
     if whiptail --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60; then
         HOMOLOG="true"
     else
         HOMOLOG="false"
     fi
 
-    # Definir URL
     if [[ "$SERVICE" == "food" ]]; then
         if [[ "$VERSION_OPTION" == "2" ]]; then
             [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://food2.homolog.vsd.app" || NEW_URL="https://food2.vsd.app"
@@ -88,7 +96,6 @@ update_url() {
         [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://selfcheckout.homolog.vsd.app" || NEW_URL="https://selfcheckout.vsd.app"
     fi
 
-    # Atualiza URL no arquivo
     sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$NEW_URL\"|" "$CONFIG_FILE"
 
     log "URL atualizada para: $NEW_URL"
@@ -96,46 +103,124 @@ update_url() {
 }
 
 # ========================
-# FUNÇÃO DESINSTALAR
+# INFO DO SISTEMA
+# ========================
+show_info() {
+    whiptail --title "Informações do Sistema" --msgbox "VSD Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Eduardo Oldenburg\nRepositório: $REPO_URL" 12 60
+}
+
+# ========================
+# GERENCIAR MÓDULOS
+# ========================
+manage_modules() {
+    MODULE=$(whiptail --title "Gerenciar Módulos" --menu "Escolha o módulo:" 20 60 10 \
+        "1" "vs-autopag" \
+        "2" "vs-os-interface" \
+        "3" "ifood" 3>&1 1>&2 2>&3)
+
+    case $MODULE in
+        1) install_autopag ;;
+        2) install_os_interface ;;
+        3) install_ifood ;;
+    esac
+}
+
+install_autopag() {
+    VERSION=$(whiptail --title "vs-autopag" --menu "Escolha a versão:" 15 50 4 \
+        "2.33.7" "" \
+        "2.33.3" "" \
+        "2.32.2" "" 3>&1 1>&2 2>&3)
+
+    URL="https://cdn.vsd.app/softwares/vs-autopag-se/$VERSION/vs-autopag-se_${VERSION}_amd64.deb"
+
+    log "Baixando vs-autopag versão $VERSION"
+    wget --inet4-only "$URL"
+    log "Instalando vs-autopag..."
+    sudo dpkg -i vs-autopag-se_${VERSION}_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
+}
+
+install_os_interface() {
+    VERSION=$(whiptail --title "vs-os-interface" --menu "Escolha a versão:" 15 50 5 \
+        "2.28.4" "" \
+        "2.28.2" "" \
+        "2.28.0" "" \
+        "2.24.0" "" 3>&1 1>&2 2>&3)
+
+    URL="https://cdn.vsd.app/softwares/vs-os-interface/$VERSION/vs-os-interface_${VERSION}_amd64.deb"
+
+    log "Baixando vs-os-interface versão $VERSION"
+    wget --inet4-only "$URL"
+    log "Instalando vs-os-interface..."
+    sudo dpkg -i vs-os-interface_${VERSION}_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
+}
+
+install_ifood() {
+    VERSION=$(whiptail --title "iFood (vsd-payment + pinpad)" --menu "Escolha o combo de versão:" 15 60 3 \
+        "1" "vsd-payment 1.2.1 + pinpad-server 3.10.0" \
+        "2" "vsd-payment 1.4.0 + pinpad-server 3.10.0" 3>&1 1>&2 2>&3)
+
+    log "Removendo módulos antigos do iFood..."
+    sudo apt purge -y vsd-payment pinpad-server 2>&1 | tee -a $LOG_FILE
+    sudo rm -rf /home/videosoft/.pinpad_server 2>/dev/null
+    sudo rm -f /home/videosoft/DesktopPlugin.db 2>/dev/null
+
+    case $VERSION in
+        1)
+            PAYMENT="1.2.1"
+            ;;
+        2)
+            PAYMENT="1.4.0"
+            ;;
+    esac
+
+    log "Baixando novos módulos..."
+    wget https://cdn.vsd.app/softwares/vsd-payment/prod/vsd-payment_${PAYMENT}_amd64.deb
+    wget https://github.com/getzoop/zoop-package-public/releases/download/zoop-desktop-server_3.10.0-beta/pinpad-server-installer_linux_3.10.0-beta.deb
+
+    log "Instalando módulos..."
+    sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a $LOG_FILE
+    sudo dpkg -i vsd-payment_${PAYMENT}_amd64.deb 2>&1 | tee -a $LOG_FILE
+}
+
+# ========================
+# DESINSTALAR
 # ========================
 uninstall() {
-    rm -f /usr/bin/vsd-launcher
+    rm -f /usr/bin/beta-launcher
     rm -f "$LOG_FILE"
-    whiptail --title "Desinstalado" --msgbox "vsd-launcher foi desinstalado com sucesso." 10 60
+    whiptail --title "Desinstalado" --msgbox "beta-launcher foi desinstalado com sucesso." 10 60
     exit 0
 }
 
 # ========================
-# MENU INTERATIVO
+# MENU PRINCIPAL
 # ========================
 while true; do
     OPTION=$(whiptail --title "VSD Launcher" --menu "Escolha uma opção:" 20 60 10 \
-        "1" "Atualizar URL" \
-        "2" "Limpar cache do Chrome" \
-        "3" "Limpar token + cache" \
-        "4" "Desinstalar vsd-launcher" \
-        "5" "Sair" 3>&1 1>&2 2>&3)
+        "1" "🔄 Atualizar beta-launcher" \
+        "2" "🌐 Atualizar URL" \
+        "3" "🗑️ Limpar cache do Chrome" \
+        "4" "🗑️ Limpar token + cache" \
+        "5" "📦 Gerenciar Módulos" \
+        "6" "❌ Desinstalar beta-launcher" \
+        "7" "ℹ️ Info" \
+        "8" "🚪 Sair" 3>&1 1>&2 2>&3)
 
     case $OPTION in
-        1)
-            update_url
-            ;;
-        2)
-            clear_cache
-            whiptail --title "Limpeza" --msgbox "Cache do Google Chrome limpo." 10 60
-            ;;
+        1) update_launcher ;;
+        2) update_url ;;
         3)
+            clear_cache
+            whiptail --title "Limpeza" --msgbox "Cache do Chrome limpo." 10 60
+            ;;
+        4)
             clear_token
             whiptail --title "Limpeza" --msgbox "Token e cache limpos." 10 60
             ;;
-        4)
-            uninstall
-            ;;
-        5)
-            exit 0
-            ;;
-        *)
-            exit 0
-            ;;
+        5) manage_modules ;;
+        6) uninstall ;;
+        7) show_info ;;
+        8) exit 0 ;;
+        *) exit 0 ;;
     esac
 done
