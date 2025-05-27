@@ -3,13 +3,13 @@
 # ========================================
 # Beta Launcher - VSD
 # Desenvolvido por Carlos Oldenburg
-# Versão: 8.1 FINAL
+# Versão: 4.1 FINAL
 # ========================================
 
 # ========================================
 # CONFIGURAÇÕES
 # ========================================
-VERSION_SISTEMA="8.1 - Beta"
+VERSION_SISTEMA="4.1 - Beta"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
 LOG_FILE="/var/log/beta-launcher.log"
 BACKUP_DIR="/opt/backup-vsd"
@@ -62,13 +62,15 @@ backup() {
 }
 
 # ========================================
-# ATUALIZAR URL
+# FUNÇÃO ATUALIZAR URL
 # ========================================
 update_url() {
+    CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
+
     if [[ ! -f "$CONFIG_FILE" ]]; then
         whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
         log "Arquivo não encontrado: $CONFIG_FILE"
-        return
+        return 1
     fi
 
     SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
@@ -82,6 +84,7 @@ update_url() {
             "2" "Food 2.0" \
             "3" "Food 3.0 (Padrão)" \
             "none" "Não especificar" 3>&1 1>&2 2>&3)
+
         [[ "$VERSION_OPTION" == "none" ]] && VERSION_OPTION=""
     else
         VERSION_OPTION=""
@@ -113,7 +116,8 @@ update_url() {
 # LIMPAR CACHE
 # ========================================
 clear_cache() {
-    rm -rf /home/$USUARIO/.cache/google-chrome/* /home/$USUARIO/.config/google-chrome/*
+    rm -r .cache/google-chrome/*
+    rm -r .config/google-chrome/*
     log "Cache do Chrome limpo."
     whiptail --title "Limpeza de Cache" --msgbox "Cache do Google Chrome limpo com sucesso." 10 60
 }
@@ -123,8 +127,10 @@ clear_cache() {
 # ========================================
 clear_token() {
     clear_cache
-    rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
-    rm -f /opt/videosoft/vs-os-interface/log/_database_recovery* 2>/dev/null
+    rm -rf ~/.cache/google-chrome/*
+    rm -rf ~/.config/google-chrome/*
+    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
+    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery* 2>/dev/null
     log "Token e arquivos de recuperação excluídos."
     whiptail --title "Limpeza" --msgbox "Token e cache limpos com sucesso." 10 60
 }
@@ -186,25 +192,9 @@ show_info() {
     whiptail --title "Informações do Sistema" --msgbox "Beta Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Oldenburg\nRepositório: $REPO_URL" 12 60
 }
 
-# ========================================
-# INSTALAÇÃO DE MÓDULOS COM BACKUP
-# ========================================
-install_module() {
-    NOME="$1"
-    VERSAO="$2"
-    URL="$3"
-
-    backup
-
-    log "Baixando $NOME versão $VERSAO"
-    wget "$URL" -O "${NOME}_${VERSAO}.deb"
-    log "Instalando $NOME..."
-    sudo dpkg -i "${NOME}_${VERSAO}.deb" 2>&1 | tee -a "$LOG_FILE" || sudo apt-get install -f -y
-}
-
-# ========================================
-# MENU DE MÓDULOS
-# ========================================
+# ========================
+# GERENCIAR MÓDULOS
+# ========================
 manage_modules() {
     MODULE=$(whiptail --title "Gerenciar Módulos" --menu "Escolha o módulo:" 20 60 10 \
         "1" "vs-autopag" \
@@ -228,7 +218,12 @@ install_autopag() {
 
     [[ -z "$VERSION" ]] && return
 
-    install_module "vs-autopag-se" "$VERSION" "https://cdn.vsd.app/softwares/vs-autopag-se/$VERSION/vs-autopag-se_${VERSION}_amd64.deb"
+    URL="https://cdn.vsd.app/softwares/vs-autopag-se/$VERSION/vs-autopag-se_${VERSION}_amd64.deb"
+
+    log "Baixando vs-autopag versão $VERSION"
+    wget --inet4-only "$URL"
+    log "Instalando vs-autopag..."
+    sudo dpkg -i vs-autopag-se_${VERSION}_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
 }
 
 install_os_interface() {
@@ -240,7 +235,12 @@ install_os_interface() {
 
     [[ -z "$VERSION" ]] && return
 
-    install_module "vs-os-interface" "$VERSION" "https://cdn.vsd.app/softwares/vs-os-interface/$VERSION/vs-os-interface_${VERSION}_amd64.deb"
+    URL="https://cdn.vsd.app/softwares/vs-os-interface/$VERSION/vs-os-interface_${VERSION}_amd64.deb"
+
+    log "Baixando vs-os-interface versão $VERSION"
+    wget --inet4-only "$URL"
+    log "Instalando vs-os-interface..."
+    sudo dpkg -i vs-os-interface_${VERSION}_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-get install -f -y
 }
 
 install_ifood() {
@@ -250,23 +250,23 @@ install_ifood() {
 
     [[ -z "$VERSION" ]] && return
 
-    backup
-
     log "Removendo módulos antigos do iFood..."
-    sudo apt purge -y vsd-payment pinpad-server
-    sudo rm -rf /home/videosoft/.pinpad_server
-    sudo rm -f /home/videosoft/DesktopPlugin.db
+    sudo apt purge -y vsd-payment pinpad-server 2>&1 | tee -a $LOG_FILE
+    sudo rm -rf /home/videosoft/.pinpad_server 2>/dev/null
+    sudo rm -f /home/videosoft/DesktopPlugin.db 2>/dev/null
 
     case $VERSION in
         1) PAYMENT="1.2.1" ;;
         2) PAYMENT="1.4.0" ;;
     esac
 
+    log "Baixando novos módulos..."
     wget https://cdn.vsd.app/softwares/vsd-payment/prod/vsd-payment_${PAYMENT}_amd64.deb
     wget https://github.com/getzoop/zoop-package-public/releases/download/zoop-desktop-server_3.10.0-beta/pinpad-server-installer_linux_3.10.0-beta.deb
 
-    sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb
-    sudo dpkg -i vsd-payment_${PAYMENT}_amd64.deb
+    log "Instalando módulos..."
+    sudo dpkg -i pinpad-server-installer_linux_3.10.0-beta.deb 2>&1 | tee -a $LOG_FILE
+    sudo dpkg -i vsd-payment_${PAYMENT}_amd64.deb 2>&1 | tee -a $LOG_FILE
 }
 
 # ========================================
