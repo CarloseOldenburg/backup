@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/versao.sh | bash
+# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/teste | bash
 
 # ========================
 # CONFIGURAÇÕES
