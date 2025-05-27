@@ -5,16 +5,10 @@
 # ========================
 # CONFIGURAÇÃO
 # ========================
-VERSION_SISTEMA="6.0"
+VERSION_SISTEMA="6.1"
 LOG_FILE="/var/log/beta-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
-
-# ========================
-# LISTA DE VERSÕES DOS MÓDULOS
-# ========================
-VERSOES_AUTOPAG=("2.33.7" "2.33.3" "2.32.2")
-VERSOES_OS_INTERFACE=("2.28.4" "2.28.2" "2.28.0" "2.24.0")
 
 # ========================
 # FUNÇÃO DE LOG
@@ -32,7 +26,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # ========================
-# CHECA DEPENDÊNCIAS (RODA SOMENTE AO INICIAR)
+# CHECA DEPENDÊNCIAS
 # ========================
 if ! dpkg -l | grep -qw whiptail; then
     log "Instalando dependências necessárias..."
@@ -163,7 +157,10 @@ manage_modules() {
 }
 
 install_autopag() {
-    VERSION=$(whiptail --title "vs-autopag" --menu "Escolha a versão:" 15 50 "${#VERSOES_AUTOPAG[@]}" "${VERSOES_AUTOPAG[@]/%/}" 3>&1 1>&2 2>&3)
+    VERSION=$(whiptail --title "vs-autopag" --menu "Escolha a versão:" 15 50 4 \
+        "2.33.7" "" \
+        "2.33.3" "" \
+        "2.32.2" "" 3>&1 1>&2 2>&3)
 
     [[ -z "$VERSION" ]] && return
 
@@ -176,7 +173,11 @@ install_autopag() {
 }
 
 install_os_interface() {
-    VERSION=$(whiptail --title "vs-os-interface" --menu "Escolha a versão:" 15 50 "${#VERSOES_OS_INTERFACE[@]}" "${VERSOES_OS_INTERFACE[@]/%/}" 3>&1 1>&2 2>&3)
+    VERSION=$(whiptail --title "vs-os-interface" --menu "Escolha a versão:" 15 50 5 \
+        "2.28.4" "" \
+        "2.28.2" "" \
+        "2.28.0" "" \
+        "2.24.0" "" 3>&1 1>&2 2>&3)
 
     [[ -z "$VERSION" ]] && return
 
