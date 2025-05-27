@@ -105,18 +105,15 @@ function update_url() {
     elif [[ "$service" == "self" ]]; then
         [[ "$homolog" == "true" ]] && new_url="https://selfcheckout.homolog.vsd.app" || new_url="https://selfcheckout.vsd.app"
     else
-        error "Serviço desconhecido."
         whiptail --title "Erro" --msgbox "Serviço desconhecido!" 10 60
         return 1
     fi
 
     if [[ -f "$config_file" ]]; then
-        sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$config_file"
-        info "URL atualizada para: $new_url"
+        sed -i "s|^\(export \)\?VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$config_file"
         whiptail --title "URL Atualizada" --msgbox "URL atualizada para:\n$new_url" 10 60
     else
-        error "Arquivo de configuração não encontrado."
-        whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado em:\n$config_file" 10 60
+        whiptail --title "Erro" --msgbox "Arquivo não encontrado:\n$config_file" 10 60
     fi
 }
 
