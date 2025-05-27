@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# sudo wget -O /usr/bin/vsd-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/vsd-launcher && sudo chmod +x /usr/bin/vsd-launcher
+
 # ========================
 # CONFIGURAÇÕES
 # ========================
