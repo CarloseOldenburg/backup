@@ -2,6 +2,12 @@
 
 # sudo wget -O /usr/bin/vsd-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/vsd-launcher && sudo chmod +x /usr/bin/vsd-launcher
 
+# Verifica se está rodando como root
+if [[ $EUID -ne 0 ]]; then
+   echo "Este script precisa ser executado como root (use sudo)."
+   exit 1
+fi
+
 # ========================
 # CONFIGURAÇÃO
 # ========================
@@ -21,7 +27,7 @@ NC='\033[0m'
 # FUNÇÕES DE LOG
 # ========================
 function log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" | sudo tee -a "$LOG_FILE" >/dev/null
+    echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" | tee -a "$LOG_FILE" >/dev/null
 }
 
 function info() {
@@ -52,8 +58,8 @@ function check_update() {
     if [[ "$remote_version" != "$VERSION" ]]; then
         warn "Nova versão disponível: $remote_version"
         if whiptail --title "Atualização Disponível" --yesno "Deseja atualizar o vsd-launcher para a versão $remote_version?" 10 60; then
-            sudo curl -s -o /usr/bin/vsd-launcher "$SCRIPT_URL"
-            sudo chmod +x /usr/bin/vsd-launcher
+            curl -s -o /usr/bin/vsd-launcher "$SCRIPT_URL"
+            chmod +x /usr/bin/vsd-launcher
             info "Atualizado para versão $remote_version."
             whiptail --title "Atualização" --msgbox "Atualizado para versão $remote_version com sucesso." 10 60
             exit 0
@@ -77,8 +83,8 @@ function clear_cache() {
 
 function clear_token() {
     clear_cache
-    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
-    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery* 2>/dev/null
+     rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
+     rm -f /opt/videosoft/vs-os-interface/log/_database_recovery* 2>/dev/null
     info "Token e arquivos de recuperação excluídos."
     whiptail --title "Limpeza" --msgbox "Token e arquivos de recuperação foram excluídos." 10 60
 }
@@ -105,7 +111,7 @@ function update_url() {
     fi
 
     if [[ -f "$config_file" ]]; then
-        sudo sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$config_file"
+        sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$config_file"
         info "URL atualizada para: $new_url"
         whiptail --title "URL Atualizada" --msgbox "URL atualizada para:\n$new_url" 10 60
     else
@@ -141,8 +147,8 @@ function menu_update_url() {
 # ========================
 function uninstall() {
     if whiptail --title "Desinstalar" --yesno "Deseja realmente desinstalar o vsd-launcher?" 10 60; then
-        sudo rm -f /usr/bin/vsd-launcher
-        sudo rm -f "$LOG_FILE"
+        rm -f /usr/bin/vsd-launcher
+        rm -f "$LOG_FILE"
         whiptail --title "Desinstalação" --msgbox "vsd-launcher foi desinstalado com sucesso." 10 60
         exit 0
     fi
@@ -176,7 +182,7 @@ function menu() {
 # ========================
 # EXECUÇÃO
 # ========================
-sudo touch "$LOG_FILE"
-sudo chmod 666 "$LOG_FILE"
+ touch "$LOG_FILE"
+ chmod 666 "$LOG_FILE"
 
 menu
