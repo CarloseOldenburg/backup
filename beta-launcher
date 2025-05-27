@@ -1,11 +1,11 @@
-🧹#!/bin/bash
+#!/bin/bash
 
 # sudo wget -O /usr/bin/beta-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher && sudo chmod +x /usr/bin/beta-launcher
 
 # ========================
 # CONFIGURAÇÃO
 # ========================
-VERSION_SISTEMA="4.0"
+VERSION_SISTEMA="5.0"
 LOG_FILE="/var/log/beta-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
@@ -24,6 +24,12 @@ if [[ $EUID -ne 0 ]]; then
     echo "Execute como root (use sudo)."
     exit 1
 fi
+
+# ========================
+# CHECA DEPENDÊNCIAS
+# ========================
+log "Atualizando pacotes e garantindo dependências..."
+sudo apt update -y && sudo apt install -y whiptail
 
 # ========================
 # ATUALIZAR LAUNCHER COM RESTART
@@ -46,6 +52,14 @@ show_logs() {
     else
         whiptail --title "Logs" --msgbox "Arquivo de log não encontrado:\n$LOG_FILE" 10 60
     fi
+}
+
+# ========================
+# APAGAR LOGS
+# ========================
+clear_logs() {
+    > "$LOG_FILE"
+    whiptail --title "Apagar Logs" --msgbox "Logs apagados com sucesso." 10 60
 }
 
 # ========================
@@ -131,6 +145,8 @@ manage_modules() {
         "2" "vs-os-interface" \
         "3" "ifood" 3>&1 1>&2 2>&3)
 
+    [[ -z "$MODULE" ]] && return
+
     case $MODULE in
         1) install_autopag ;;
         2) install_os_interface ;;
@@ -143,6 +159,8 @@ install_autopag() {
         "2.33.7" "" \
         "2.33.3" "" \
         "2.32.2" "" 3>&1 1>&2 2>&3)
+
+    [[ -z "$VERSION" ]] && return
 
     URL="https://cdn.vsd.app/softwares/vs-autopag-se/$VERSION/vs-autopag-se_${VERSION}_amd64.deb"
 
@@ -159,6 +177,8 @@ install_os_interface() {
         "2.28.0" "" \
         "2.24.0" "" 3>&1 1>&2 2>&3)
 
+    [[ -z "$VERSION" ]] && return
+
     URL="https://cdn.vsd.app/softwares/vs-os-interface/$VERSION/vs-os-interface_${VERSION}_amd64.deb"
 
     log "Baixando vs-os-interface versão $VERSION"
@@ -171,6 +191,8 @@ install_ifood() {
     VERSION=$(whiptail --title "iFood (vsd-payment + pinpad)" --menu "Escolha o combo de versão:" 15 60 3 \
         "1" "vsd-payment 1.2.1 + pinpad-server 3.10.0" \
         "2" "vsd-payment 1.4.0 + pinpad-server 3.10.0" 3>&1 1>&2 2>&3)
+
+    [[ -z "$VERSION" ]] && return
 
     log "Removendo módulos antigos do iFood..."
     sudo apt purge -y vsd-payment pinpad-server 2>&1 | tee -a $LOG_FILE
@@ -208,13 +230,14 @@ while true; do
     OPTION=$(whiptail --title "Beta Launcher" --menu "Escolha uma opção:" 20 60 10 \
         "1" "🔄 Atualizar beta-launcher" \
         "2" "🌐 Atualizar URL" \
-        "3" "🗑️ Limpar cache do Chrome" \
-        "4" "🗑️ Limpar token + cache" \
+        "3" "🧹 Limpar cache do Chrome" \
+        "4" "🧹 Limpar token + cache" \
         "5" "📦 Gerenciar Módulos" \
         "6" "📄 Ver Logs" \
-        "7" "❌ Desinstalar beta-launcher" \
-        "8" "ℹ️ Info" \
-        "9" "🚪 Sair" 3>&1 1>&2 2>&3)
+        "7" "🗑️ Apagar Logs" \
+        "8" "❌ Desinstalar beta-launcher" \
+        "9" "ℹ️ Info" \
+        "10" "🚪 Sair" 3>&1 1>&2 2>&3)
 
     case $OPTION in
         1) update_launcher ;;
@@ -229,9 +252,10 @@ while true; do
             ;;
         5) manage_modules ;;
         6) show_logs ;;
-        7) uninstall ;;
-        8) show_info ;;
-        9) exit 0 ;;
+        7) clear_logs ;;
+        8) uninstall ;;
+        9) show_info ;;
+        10) exit 0 ;;
         *) exit 0 ;;
     esac
 done
