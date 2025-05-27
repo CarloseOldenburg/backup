@@ -2,34 +2,37 @@
 
 # sudo wget -O /usr/bin/vsd-launcher https://raw.githubusercontent.com/CarloseOldenburg/updater/main/vsd-launcher && sudo chmod +x vsd-launcher && sudo mv vsd-launcher /usr/bin/
 
+# ========================
+# CONFIGURAÇÃO
+# ========================
+VERSION="1.0"
+LOG_FILE="/var/log/vsd-launcher.log"
+CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
+
 # Verifica se está rodando como root
 if [[ $EUID -ne 0 ]]; then
    echo "Este script precisa ser executado como root (use sudo)."
    exit 1
 fi
 
-VERSION="1.0"
-LOG_FILE="/var/log/vsd-launcher.log"
-CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
-
-# Verifica se está executando como root
-if [[ $EUID -ne 0 ]]; then
-    echo "Este script precisa ser executado como root (use sudo)."
-    exit 1
-fi
-
-# Log
+# ========================
+# FUNÇÕES DE LOG
+# ========================
 log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" >> "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') | $1" | sudo tee -a "$LOG_FILE" >/dev/null
 }
 
-# Limpar cache
+# ========================
+# FUNÇÃO LIMPAR CACHE
+# ========================
 clear_cache() {
     rm -rf ~/.cache/google-chrome/* ~/.config/google-chrome/*
     log "Cache do Google Chrome limpo."
 }
 
-# Limpar token
+# ========================
+# FUNÇÃO LIMPAR TOKEN + CACHE
+# ========================
 clear_token() {
     clear_cache
     rm -f /opt/videosoft/vs-os-interface/log/_database_token* 2>/dev/null
@@ -37,50 +40,74 @@ clear_token() {
     log "Token e arquivos de recuperação excluídos."
 }
 
-# Atualizar URL
+# ========================
+# FUNÇÃO ATUALIZAR URL
+# ========================
 update_url() {
-    local service="$1"
-    local version="$2"
-    local homolog="$3"
-    local new_url=""
-
-    if [[ "$service" == "food" ]]; then
-        if [[ "$version" == "2" ]]; then
-            [[ "$homolog" == "true" ]] && new_url="https://food2.homolog.vsd.app" || new_url="https://food2.vsd.app"
-        else
-            [[ "$homolog" == "true" ]] && new_url="https://food.homolog.vsd.app" || new_url="https://food.vsd.app"
-        fi
-    elif [[ "$service" == "self" ]]; then
-        [[ "$homolog" == "true" ]] && new_url="https://selfcheckout.homolog.vsd.app" || new_url="https://selfcheckout.vsd.app"
-    else
-        log "Erro: Serviço desconhecido."
-        (whiptail --title "Erro" --msgbox "Serviço desconhecido!" 10 60) || true
+    # Verifica se o arquivo existe
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
+        log "Arquivo não encontrado: $CONFIG_FILE"
         return 1
     fi
 
-    if [[ -f "$CONFIG_FILE" ]]; then
-        sed -i "s|^\(export \)\?VS_URL_APP=.*|VS_URL_APP=\"$new_url\"|" "$CONFIG_FILE"
-        log "URL atualizada para: $new_url"
-        (whiptail --title "Sucesso" --msgbox "URL atualizada para:\n$new_url" 10 60) || true
-        return 0
+    # Escolher serviço
+    SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
+        "food" "Sistema Food" \
+        "self" "Selfcheckout" 3>&1 1>&2 2>&3)
+
+    [[ -z "$SERVICE" ]] && return 0
+
+    # Se for food, escolher versão
+    if [[ "$SERVICE" == "food" ]]; then
+        VERSION_OPTION=$(whiptail --title "Versão" --menu "Versão (Food apenas):" 15 50 3 \
+            "2" "Food 2.0" \
+            "3" "Food 3.0 (Padrão)" \
+            "none" "Não especificar" 3>&1 1>&2 2>&3)
+
+        [[ "$VERSION_OPTION" == "none" ]] && VERSION_OPTION=""
     else
-        log "Erro: Arquivo não encontrado."
-        (whiptail --title "Erro" --msgbox "Arquivo não encontrado:\n$CONFIG_FILE" 10 60) || true
-        return 2
+        VERSION_OPTION=""
     fi
+
+    # Escolher ambiente
+    if whiptail --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60; then
+        HOMOLOG="true"
+    else
+        HOMOLOG="false"
+    fi
+
+    # Definir URL
+    if [[ "$SERVICE" == "food" ]]; then
+        if [[ "$VERSION_OPTION" == "2" ]]; then
+            [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://food2.homolog.vsd.app" || NEW_URL="https://food2.vsd.app"
+        else
+            [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://food.homolog.vsd.app" || NEW_URL="https://food.vsd.app"
+        fi
+    elif [[ "$SERVICE" == "self" ]]; then
+        [[ "$HOMOLOG" == "true" ]] && NEW_URL="https://selfcheckout.homolog.vsd.app" || NEW_URL="https://selfcheckout.vsd.app"
+    fi
+
+    # Atualiza URL no arquivo
+    sed -i "s|^VS_URL_APP=.*|VS_URL_APP=\"$NEW_URL\"|" "$CONFIG_FILE"
+
+    log "URL atualizada para: $NEW_URL"
+    whiptail --title "Sucesso" --msgbox "✅ URL atualizada para:\n$NEW_URL" 10 60
 }
 
-# Desinstalar
+# ========================
+# FUNÇÃO DESINSTALAR
+# ========================
 uninstall() {
     rm -f /usr/bin/vsd-launcher
     rm -f "$LOG_FILE"
-    echo "vsd-launcher desinstalado."
+    whiptail --title "Desinstalado" --msgbox "vsd-launcher foi desinstalado com sucesso." 10 60
     exit 0
 }
 
-# ============================
-# Interface de Menu
-# ============================
+# ========================
+# MENU INTERATIVO
+# ========================
 while true; do
     OPTION=$(whiptail --title "VSD Launcher" --menu "Escolha uma opção:" 20 60 10 \
         "1" "Atualizar URL" \
@@ -91,29 +118,14 @@ while true; do
 
     case $OPTION in
         1)
-            SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
-                "food" "Sistema Food" \
-                "self" "Selfcheckout" 3>&1 1>&2 2>&3)
-
-            [[ -z "$SERVICE" ]] && continue
-
-            VERSION=$(whiptail --title "Versão" --menu "Versão (Food apenas):" 15 50 3 \
-                "2" "Food 2.0" \
-                "3" "Food 3.0 (Padrão)" \
-                "none" "Não especificar" 3>&1 1>&2 2>&3)
-
-            [[ "$VERSION" == "none" ]] && VERSION=""
-
-            HOMOLOG=$(whiptail --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60 && echo "true" || echo "false")
-
-            (bash -c "update_url '$SERVICE' '$VERSION' '$HOMOLOG'")
+            update_url
             ;;
         2)
-            (bash -c "clear_cache")
+            clear_cache
             whiptail --title "Limpeza" --msgbox "Cache do Google Chrome limpo." 10 60
             ;;
         3)
-            (bash -c "clear_token")
+            clear_token
             whiptail --title "Limpeza" --msgbox "Token e cache limpos." 10 60
             ;;
         4)
