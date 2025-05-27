@@ -9,7 +9,7 @@
 # ========================================
 # CONFIGURAÇÕES
 # ========================================
-VERSION_SISTEMA=48.1 - Beta"
+VERSION_SISTEMA="4.1 - Beta"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
 LOG_FILE="/var/log/beta-launcher.log"
 BACKUP_DIR="/opt/backup-vsd"
