@@ -62,13 +62,15 @@ backup() {
 }
 
 # ========================================
-# ATUALIZAR URL
+# FUNÇÃO ATUALIZAR URL
 # ========================================
 update_url() {
+    CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
+
     if [[ ! -f "$CONFIG_FILE" ]]; then
         whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
         log "Arquivo não encontrado: $CONFIG_FILE"
-        return
+        return 1
     fi
 
     SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
@@ -82,6 +84,7 @@ update_url() {
             "2" "Food 2.0" \
             "3" "Food 3.0 (Padrão)" \
             "none" "Não especificar" 3>&1 1>&2 2>&3)
+
         [[ "$VERSION_OPTION" == "none" ]] && VERSION_OPTION=""
     else
         VERSION_OPTION=""
