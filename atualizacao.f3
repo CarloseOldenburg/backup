@@ -48,7 +48,6 @@ function display_help() {
     echo "  vsd-launcher --clear-token             Limpa o token e cache do Google Chrome"
     echo
     echo "Se o software for 'food' e a versão não for especificada, a versão padrão será usada."
-    echo "Para mais informações, consulte a documentação ou entre em contato com o Wilker Santos."
 }
 
 # Função para exibir a URL conforme os parâmetros fornecidos e atualizar o script
