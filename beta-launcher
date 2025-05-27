@@ -5,7 +5,7 @@
 # ========================
 # CONFIGURAÇÃO
 # ========================
-VERSION_SISTEMA="3.0"
+VERSION_SISTEMA="4.0"
 LOG_FILE="/var/log/beta-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/beta-launcher"
@@ -26,13 +26,26 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # ========================
-# ATUALIZAR LAUNCHER
+# ATUALIZAR LAUNCHER COM RESTART
 # ========================
 update_launcher() {
     log "Iniciando atualização do beta-launcher..."
     wget -O /usr/bin/beta-launcher "$REPO_URL" && chmod +x /usr/bin/beta-launcher
     log "Atualização concluída."
-    whiptail --title "Atualização" --msgbox "beta-launcher atualizado com sucesso!" 10 60
+    whiptail --title "Atualização" --msgbox "beta-launcher atualizado com sucesso!\nO launcher será reiniciado." 10 60
+    exec /usr/bin/beta-launcher
+    exit
+}
+
+# ========================
+# VER LOGS
+# ========================
+show_logs() {
+    if [[ -f "$LOG_FILE" ]]; then
+        whiptail --textbox "$LOG_FILE" 25 70
+    else
+        whiptail --title "Logs" --msgbox "Arquivo de log não encontrado:\n$LOG_FILE" 10 60
+    fi
 }
 
 # ========================
@@ -106,7 +119,7 @@ update_url() {
 # INFO DO SISTEMA
 # ========================
 show_info() {
-    whiptail --title "Informações do Sistema" --msgbox "VSD Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Eduardo Oldenburg\nRepositório: $REPO_URL" 12 60
+    whiptail --title "Informações do Sistema" --msgbox "Beta Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Eduardo Oldenburg\nRepositório: $REPO_URL" 12 60
 }
 
 # ========================
@@ -165,12 +178,8 @@ install_ifood() {
     sudo rm -f /home/videosoft/DesktopPlugin.db 2>/dev/null
 
     case $VERSION in
-        1)
-            PAYMENT="1.2.1"
-            ;;
-        2)
-            PAYMENT="1.4.0"
-            ;;
+        1) PAYMENT="1.2.1" ;;
+        2) PAYMENT="1.4.0" ;;
     esac
 
     log "Baixando novos módulos..."
@@ -196,15 +205,16 @@ uninstall() {
 # MENU PRINCIPAL
 # ========================
 while true; do
-    OPTION=$(whiptail --title "VSD Launcher" --menu "Escolha uma opção:" 20 60 10 \
+    OPTION=$(whiptail --title "Beta Launcher" --menu "Escolha uma opção:" 20 60 10 \
         "1" "🔄 Atualizar beta-launcher" \
         "2" "🌐 Atualizar URL" \
-        "3" "🗑️ Limpar cache do Chrome" \
-        "4" "🗑️ Limpar token + cache" \
+        "3" "🧹 Limpar cache do Chrome" \
+        "4" "🧹 Limpar token + cache" \
         "5" "📦 Gerenciar Módulos" \
-        "6" "❌ Desinstalar beta-launcher" \
-        "7" "ℹ️ Info" \
-        "8" "🚪 Sair" 3>&1 1>&2 2>&3)
+        "6" "📄 Ver Logs" \
+        "7" "❌ Desinstalar beta-launcher" \
+        "8" "ℹ️ Info" \
+        "9" "🚪 Sair" 3>&1 1>&2 2>&3)
 
     case $OPTION in
         1) update_launcher ;;
@@ -218,10 +228,10 @@ while true; do
             whiptail --title "Limpeza" --msgbox "Token e cache limpos." 10 60
             ;;
         5) manage_modules ;;
-        6) uninstall ;;
-        7) show_info ;;
-        8) exit 0 ;;
+        6) show_logs ;;
+        7) uninstall ;;
+        8) show_info ;;
+        9) exit 0 ;;
         *) exit 0 ;;
     esac
 done
-
