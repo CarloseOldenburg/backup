@@ -61,34 +61,33 @@ backup() {
     log "Backup realizado em $BACKUP_DIR/$DATE"
 }
 
-# ========================
+# ========================================
 # ATUALIZAR URL
-# ========================
+# ========================================
 update_url() {
     if [[ ! -f "$CONFIG_FILE" ]]; then
         whiptail --title "Erro" --msgbox "Arquivo de configuração não encontrado:\n$CONFIG_FILE" 10 60
         log "Arquivo não encontrado: $CONFIG_FILE"
-        return 1
+        return
     fi
 
     SERVICE=$(whiptail --title "Serviço" --menu "Selecione o serviço:" 15 50 2 \
         "food" "Sistema Food" \
         "self" "Selfcheckout" 3>&1 1>&2 2>&3)
 
-    [[ -z "$SERVICE" ]] && return 0
+    [[ -z "$SERVICE" ]] && return
 
     if [[ "$SERVICE" == "food" ]]; then
         VERSION_OPTION=$(whiptail --title "Versão" --menu "Versão (Food apenas):" 15 50 3 \
             "2" "Food 2.0" \
             "3" "Food 3.0 (Padrão)" \
             "none" "Não especificar" 3>&1 1>&2 2>&3)
-
         [[ "$VERSION_OPTION" == "none" ]] && VERSION_OPTION=""
     else
         VERSION_OPTION=""
     fi
 
-    if whiptail --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60; then
+    if whiptail --defaultno --title "Ambiente" --yesno "Usar ambiente de HOMOLOGAÇÃO?" 10 60; then
         HOMOLOG="true"
     else
         HOMOLOG="false"
