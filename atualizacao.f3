@@ -14,8 +14,8 @@ sudo dpkg -i vs-autopag-se_2.33.7_amd64.deb 2>&1 | tee -a $LOG_FILE || sudo apt-
 
 # Instalando vsd-launcher
 echo "Instalando vsd-launcher..." | tee -a $LOG_FILE
-sudo wget --inet4-only https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/ferramentas -O /usr/bin/vsd-launcher
-sudo chmod 755 /usr/bin/vsd-launche
+sudo wget https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/ferramentas -O /usr/bin/vsd-launcher
+sudo chmod +x /usr/bin/vsd-launcher
 
 # Limpeza de Cache
 vsd-launcher --clear-token
