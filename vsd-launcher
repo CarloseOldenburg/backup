@@ -5,7 +5,7 @@
 # ========================
 # CONFIGURAÇÃO
 # ========================
-VERSION="2.0"
+VERSION_SISTEMA="2.1"
 LOG_FILE="/var/log/vsd-launcher.log"
 CONFIG_FILE="/opt/videosoft/vs-food-launcher/app/vs-food.sh"
 REPO_URL="https://raw.githubusercontent.com/CarloseOldenburg/updater/main/vsd-launcher"
@@ -106,7 +106,7 @@ update_url() {
 # INFO DO SISTEMA
 # ========================
 show_info() {
-    whiptail --title "Informações do Sistema" --msgbox "VSD Launcher\nVersão: $VERSION"\nDesenvolvido por: Carlos Eduardo Oldenburg\nRepositório: $REPO_URL" 12 60
+    whiptail --title "Informações do Sistema" --msgbox "VSD Launcher\nVersão: $VERSION_SISTEMA\nDesenvolvido por: Carlos Eduardo Oldenburg\nRepositório: $REPO_URL" 12 60
 }
 
 # ========================
