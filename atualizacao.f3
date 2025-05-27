@@ -1,5 +1,5 @@
 #!/bin/bash
-# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/atualizacao | bash
+# sudo wget --inet4-only -O- https://raw.githubusercontent.com/CarloseOldenburg/updater/refs/heads/main/atualizacao.f3 | bash
 
 set -e  # Para parar em caso de erro
 LOG_FILE="install_log.txt"
