@@ -144,15 +144,6 @@ function clear_token() {
     echo "Token e cache do Google Chrome limpos."
 }
 
-# Função para limpar o token e cache do Google Chrome
-function clear_token() {
-    rm -r .cache/google-chrome/*
-    rm -r .config/google-chrome/*
-    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_token*
-    sudo rm -f /opt/videosoft/vs-os-interface/log/_database_recovery*
-    echo "Token e cache do Google Chrome limpos."
-}
-
 # Verifica se nenhum parâmetro foi passado e exibe a ajuda
 if [ $# -eq 0 ]; then
     display_help
