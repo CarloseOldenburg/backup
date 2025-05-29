@@ -216,6 +216,7 @@ manage_modules() {
 install_autopag() {
     VERSION=$(whiptail --title "vs-autopag" --menu "Escolha a versão:" 15 50 4 \
         "2.33.7" "" \
+        "2.33.5" "" \
         "2.33.3" "" \
         "2.32.2" "" 3>&1 1>&2 2>&3)
 
