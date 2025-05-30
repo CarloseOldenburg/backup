@@ -28,9 +28,10 @@ vsd-launcher -s food 2>&1 | tee -a $LOG_FILE
 echo "Removendo módulos antigos..." | tee -a $LOG_FILE
 sudo apt purge -y vsd-payment 2>&1 | tee -a $LOG_FILE
 sudo apt purge -y pinpad-server 2>&1 | tee -a $LOG_FILE
-cd /home/videosoft || exit
-sudo rm -rf .pinpad_server
-sudo rm -f DesktopPlugin.db
+sudo rm -rf /home/videosoft/.pinpad_server 2>/dev/null
+sudo rm -f /home/videosoft/DesktopPlugin.db 2>/dev/null
+sudo rm -rf /home/terminal/.pinpad_server 2>/dev/null
+sudo rm -f /home/terminal/DesktopPlugin.db 2>/dev/null
 
 # Baixar os novos módulos
 echo "Baixando novos módulos..." | tee -a $LOG_FILE
