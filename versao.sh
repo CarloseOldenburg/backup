@@ -13,7 +13,8 @@ sudo chmod 755 vsd-launcher
 sudo mv vsd-launcher /usr/bin/
 
 echo "Executando vsd-launcher..." | tee -a $LOG_FILE
-vsd-launcher --clear-token 2>&1 | tee -a $LOG_FILE
+sudo vsd-launcher --clear-token 2>&1 | tee -a $LOG_FILE
+sudo vsd-launcher -s food -v 2 2>&1 | tee -a $LOG_FILE
 
 # Desinstalar módulos antigos
 echo "Removendo módulos antigos..." | tee -a $LOG_FILE
